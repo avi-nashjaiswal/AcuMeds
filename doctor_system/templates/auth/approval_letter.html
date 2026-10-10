@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Practice Authorization Certificate - Dr. {{ doctor.user.full_name or doctor.user.username }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #0f766e;
+      --primary-dark: #115e59;
+      --gold: #d97706;
+      --gold-light: #fef3c7;
+      --slate-900: #0f172a;
+      --slate-700: #334155;
+      --slate-500: #64748b;
+      --slate-100: #f8fafc;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #e2e8f0;
+      color: var(--slate-900);
+      padding: 30px 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .toolbar {
+      width: 100%;
+      max-width: 860px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-outline {
+      background: white;
+      color: var(--slate-700);
+      border: 1px solid #cbd5e1;
+    }
+
+    /* Certificate Paper Container */
+    .certificate-paper {
+      width: 100%;
+      max-width: 860px;
+      background: #ffffff;
+      border: 12px double #0f766e;
+      border-radius: 6px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+      padding: 45px 55px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cert-corner {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-color: #d97706;
+      border-style: solid;
+      pointer-events: none;
+    }
+    .top-left { top: 8px; left: 8px; border-width: 4px 0 0 4px; }
+    .top-right { top: 8px; right: 8px; border-width: 4px 4px 0 0; }
+    .bottom-left { bottom: 8px; left: 8px; border-width: 0 0 4px 4px; }
+    .bottom-right { bottom: 8px; right: 8px; border-width: 0 4px 4px 0; }
+
+    .cert-header {
+      text-align: center;
+      margin-bottom: 25px;
+      position: relative;
+    }
+
+    .cert-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #0f766e, #0284c7);
+      border-radius: 50%;
+      color: white;
+      font-size: 2rem;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+    }
+
+    .cert-header h1 {
+      font-size: 1.85rem;
+      font-weight: 900;
+      color: var(--slate-900);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .cert-header h2 {
+      font-size: 1.15rem;
+      color: var(--primary);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-top: 4px;
+    }
+
+    .cert-subtitle {
+      font-size: 0.88rem;
+      color: var(--slate-500);
+      margin-top: 6px;
+    }
+
+    .cert-body {
+      text-align: center;
+      margin: 30px 0;
+      line-height: 1.7;
+    }
+
+    .cert-intro {
+      font-size: 1.05rem;
+      color: var(--slate-700);
+      margin-bottom: 12px;
+    }
+
+    .doctor-name {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #0f766e;
+      border-bottom: 2px solid #d97706;
+      display: inline-block;
+      padding: 0 30px 6px 30px;
+      margin: 10px 0 16px 0;
+      letter-spacing: -0.01em;
+    }
+
+    .cert-statement {
+      font-size: 1rem;
+      color: var(--slate-700);
+      max-width: 680px;
+      margin: 0 auto 24px auto;
+    }
+
+    .credentials-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      background: var(--slate-100);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      text-align: left;
+      margin: 24px 0;
+      font-size: 0.88rem;
+    }
+
+    .cred-item label {
+      display: block;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      color: var(--slate-500);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .cred-item strong {
+      color: var(--slate-900);
+      font-size: 0.95rem;
+    }
+
+    .signatures-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 40px;
+      padding: 0 20px;
+    }
+
+    .sig-box {
+      text-align: center;
+    }
+
+    .sig-line {
+      width: 180px;
+      border-top: 1px dashed var(--slate-700);
+      margin-bottom: 6px;
+    }
+
+    .gold-seal {
+      width: 95px;
+      height: 95px;
+      background: radial-gradient(circle, #fef3c7, #fde68a, #d97706);
+      border: 3px double #b45309;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #78350f;
+      font-weight: 900;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3);
+      transform: rotate(-5deg);
+    }
+
+    .cert-footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 0.75rem;
+      color: var(--slate-500);
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .toolbar {
+        display: none !important;
+      }
+      .certificate-paper {
+        box-shadow: none;
+        border-width: 6px;
+        padding: 25px;
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-outline">
+      <i class="fa-solid fa-arrow-left"></i> Doctor Dashboard
+    </a>
+    <button onclick="window.print()" class="btn btn-primary">
+      <i class="fa-solid fa-print"></i> Print Official Certificate
+    </button>
+  </div>
+
+  <!-- Certificate Paper -->
+  <div class="certificate-paper">
+    <div class="cert-corner top-left"></div>
+    <div class="cert-corner top-right"></div>
+    <div class="cert-corner bottom-left"></div>
+    <div class="cert-corner bottom-right"></div>
+
+    <div class="cert-header">
+      <div class="cert-badge">
+        <i class="fa-solid fa-user-doctor"></i>
+      </div>
+      <h1>AcuMeds Telehealth Medical Board</h1>
+      <h2>Certificate of Practice Authorization & Accreditation</h2>
+      <p class="cert-subtitle">Registered under National Telemedicine Regulatory Framework</p>
+    </div>
+
+    <div class="cert-body">
+      <p class="cert-intro">This is to certify that upon rigorous credential verification</p>
+
+      <div class="doctor-name">
+        {{ doctor.user.full_name or doctor.user.username }}
+      </div>
+
+      <p class="cert-statement">
+        has been verified as a registered medical practitioner and is hereby granted official clinical authority to conduct telehealth consultations, prescribe medications, and provide digital healthcare services on the <strong>AcuMeds Healthcare Network</strong>.
+      </p>
+
+      <!-- Credentials Grid -->
+      <div class="credentials-grid">
+        <div class="cred-item">
+          <label>Medical Council License</label>
+          <strong style="font-family: monospace; color: var(--primary);">{{ doctor.license_number }}</strong>
+        </div>
+        <div class="cred-item">
+          <label>Specialization</label>
+          <strong>{{ doctor.specialization }}</strong>
+        </div>
+        <div class="cred-item">
+          <label>Degrees & Qualification</label>
+          <strong>{{ doctor.qualification }}</strong>
+        </div>
+        <div class="cred-item">
+          <label>Authorization Reference</label>
+          <strong style="font-family: monospace;">{{ doctor.approval_letter_ref or ('ACU-DOC-APPR-' ~ doctor.id) }}</strong>
+        </div>
+        <div class="cred-item">
+          <label>Date of Authorization</label>
+          <strong>{{ doctor.verified_at.strftime('%d %B, %Y') if doctor.verified_at else (doctor.created_at.strftime('%d %B, %Y') if doctor.created_at else 'Active') }}</strong>
+        </div>
+        <div class="cred-item">
+          <label>Practice City</label>
+          <strong>{{ doctor.city or 'Delhi, India' }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Signatures & Seal -->
+    <div class="signatures-row">
+      <div class="sig-box">
+        <div style="font-family: 'Brush Script MT', cursive, sans-serif; font-size: 1.5rem; color: var(--slate-700); margin-bottom: 2px;">
+          Dr. Rajesh K.
+        </div>
+        <div class="sig-line"></div>
+        <strong style="font-size: 0.85rem; display: block;">Board Director</strong>
+        <span style="font-size: 0.75rem; color: var(--slate-500);">Medical Credentials Board</span>
+      </div>
+
+      <div class="gold-seal">
+        <i class="fa-solid fa-award" style="font-size: 1.2rem; margin-bottom: 2px;"></i>
+        AcuMeds<br>Certified<br>Practitioner
+      </div>
+
+      <div class="sig-box">
+        <div style="font-family: 'Brush Script MT', cursive, sans-serif; font-size: 1.5rem; color: var(--slate-700); margin-bottom: 2px;">
+          Dr. Anand Varma
+        </div>
+        <div class="sig-line"></div>
+        <strong style="font-size: 0.85rem; display: block;">Chief Medical Officer</strong>
+        <span style="font-size: 0.75rem; color: var(--slate-500);">AcuMeds Telehealth</span>
+      </div>
+    </div>
+
+    <div class="cert-footer">
+      <p>Authorization ID: <strong>{{ doctor.approval_letter_ref or ('ACU-APPR-' ~ doctor.id) }}</strong> • Digital Verification URL: http://localhost:5004/doctor/approval-certificate</p>
+    </div>
+  </div>
+
+</body>
+</html>

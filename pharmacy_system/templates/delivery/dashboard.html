@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Delivery Dashboard - AcuMeds{% endblock %}
+
+{% block content %}
+<h1 class="mb-4"><i class="fas fa-truck"></i> Delivery Dashboard</h1>
+
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-primary">
+            <div class="card-body">
+                <div class="text-primary text-uppercase small">Assigned</div>
+                <div class="h4 mb-0">{{ assigned_count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-info">
+            <div class="card-body">
+                <div class="text-info text-uppercase small">In Transit</div>
+                <div class="h4 mb-0">{{ in_transit_count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-success">
+            <div class="card-body">
+                <div class="text-success text-uppercase small">Delivered</div>
+                <div class="h4 mb-0">{{ delivered_count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-warning">
+            <div class="card-body">
+                <div class="text-warning text-uppercase small">Earnings</div>
+                <div class="h4 mb-0">INR {{ "%.2f"|format(total_earnings) }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Assigned Deliveries</h5>
+        <span class="small">Pending Cash: INR {{ "%.2f"|format(pending_cash) }}</span>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Order</th>
+                        <th>Customer</th>
+                        <th>Shop</th>
+                        <th>Status</th>
+                        <th>Cash</th>
+                        <th>Assigned</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for delivery in deliveries %}
+                    <tr>
+                        <td><strong>#{{ delivery.order.id }}</strong></td>
+                        <td>{{ delivery.order.user.full_name | default(delivery.order.user.username) }}</td>
+                        <td>
+                            {% if delivery.order.shopkeeper %}
+                                {{ delivery.order.shopkeeper.shop_name }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if delivery.status == 'Delivered' %}success{% elif delivery.status == 'Out for Delivery' %}info{% elif delivery.status == 'Picked Up' %}primary{% else %}secondary{% endif %}">
+                                {{ delivery.status }}
+                            </span>
+                        </td>
+                        <td>INR {{ "%.2f"|format(delivery.cash_to_collect or 0) }}</td>
+                        <td>{{ delivery.assigned_at.strftime('%m/%d/%Y %H:%M') if delivery.assigned_at else '-' }}</td>
+                        <td>
+                            <a href="{{ url_for('delivery.delivery_detail', delivery_id=delivery.id) }}" class="btn btn-sm btn-outline-primary">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

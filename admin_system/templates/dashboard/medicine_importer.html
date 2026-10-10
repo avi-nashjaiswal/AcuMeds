@@ -1,0 +1,443 @@
+{% extends 'base.html' %}
+
+{% block title %}Medicine Importer - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="fas fa-pills"></i> Medicine Database Importer</h2>
+            <p class="text-muted">Search and import medicines from the free National Library of Medicine database</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Search Panel -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-search"></i> Search Medicines</h5>
+                </div>
+                <div class="card-body">
+                    <form id="searchForm">
+                        <div class="mb-3">
+                            <label class="form-label">Search by Name</label>
+                            <div class="input-group">
+                                <input type="text" id="searchInput" class="form-control" 
+                                       placeholder="e.g., Aspirin, Paracetamol..." autocomplete="off">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                            </div>
+                            <small class="text-muted d-block mt-2">Minimum 2 characters required</small>
+                        </div>
+                    </form>
+
+                    <div class="mb-3">
+                        <label class="form-label">Or Search by Medical Condition</label>
+                        <select id="conditionSelect" class="form-select">
+                            <option value="">-- Select a condition --</option>
+                            <option value="fever">Fever</option>
+                            <option value="pain">Pain</option>
+                            <option value="headache">Headache</option>
+                            <option value="cold">Cold</option>
+                            <option value="cough">Cough</option>
+                            <option value="allergy">Allergy</option>
+                            <option value="acid reflux">Acid Reflux</option>
+                            <option value="diabetes">Diabetes</option>
+                            <option value="infection">Infection</option>
+                            <option value="immunity">Immunity Booster</option>
+                        </select>
+                        <button type="button" class="btn btn-secondary btn-sm mt-2 w-100" id="conditionBtn">
+                            <i class="fas fa-search"></i> Search by Condition
+                        </button>
+                    </div>
+
+                    <hr />
+
+                    <div class="mb-3">
+                        <label class="form-label">All Categories</label>
+                        <div id="categoriesContainer">
+                            <div class="spinner-border spinner-border-sm" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Import Stats -->
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Database Info</h5>
+                </div>
+                <div class="card-body">
+                    <div id="dbInfo">
+                        <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> Search Results</h5>
+                </div>
+                <div class="card-body" style="max-height: 800px; overflow-y: auto;">
+                    <div id="resultsContainer">
+                        <p class="text-muted">Search for medicines to see results here...  </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Medicine Details Modal -->
+<div class="modal fade" id="medicineModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><span id="modalMedicineName"></span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalMedicineDetails"></div>
+                
+                <hr />
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Price (₹)</label>
+                            <input type="number" id="importPrice" class="form-control" 
+                                   placeholder="Leave blank for default price" step="0.01">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Assign to Shopkeeper (Optional)</label>
+                            <select id="importShopkeeper" class="form-select">
+                                <option value="">-- System-wide Medicine --</option>
+                                {% for shopkeeper in shopkeepers %}
+                                <option value="{{ shopkeeper.id }}">{{ shopkeeper.shop_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="importBtn" onclick="importMedicine()">
+                    <i class="fas fa-download"></i> Import Medicine
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentSearchResults = [];
+let selectedMedicineId = null;
+
+// Load database info on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadDatabaseInfo();
+    loadCategories();
+});
+
+// Load database info
+function loadDatabaseInfo() {
+    fetch('/api/medicines/all', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let html = `
+                <div class="stat-item mb-3">
+                    <h6 class="text-primary">${data.count}</h6>
+                    <small>Total Medicines Available</small>
+                </div>
+            `;
+            document.getElementById('dbInfo').innerHTML = html;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('dbInfo').innerHTML = '<p class="text-danger">Failed to load info</p>';
+    });
+}
+
+// Load categories
+function loadCategories() {
+    fetch('/api/medicines/categories', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let html = data.categories.map(cat => 
+                `<button type="button" class="btn btn-sm btn-outline-primary mb-2" 
+                         onclick="searchByCategory('${cat}')">${cat}</button>`
+            ).join(' ');
+            document.getElementById('categoriesContainer').innerHTML = html;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('categoriesContainer').innerHTML = '<p class="text-danger">Failed to load</p>';
+    });
+}
+
+// Search by category
+function searchByCategory(category) {
+    fetch(`/api/medicines/search?q=${encodeURIComponent(category)}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayResults(data.medicines);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// Search form submission
+document.getElementById('searchForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const query = document.getElementById('searchInput').value.trim();
+    
+    if (query.length < 2) {
+        alert('Please enter at least 2 characters');
+        return;
+    }
+
+    document.getElementById('resultsContainer').innerHTML = '<div class="spinner-border" role="status"></div>';
+
+    fetch(`/api/medicines/search?q=${encodeURIComponent(query)}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayResults(data.medicines);
+        } else {
+            document.getElementById('resultsContainer').innerHTML = 
+                `<p class="text-danger">${data.error}</p>`;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('resultsContainer').innerHTML = 
+            '<p class="text-danger">Search failed. Please try again.</p>';
+    });
+});
+
+// Condition search
+document.getElementById('conditionBtn').addEventListener('click', function() {
+    const condition = document.getElementById('conditionSelect').value;
+    if (!condition) {
+        alert('Please select a condition');
+        return;
+    }
+
+    document.getElementById('resultsContainer').innerHTML = '<div class="spinner-border" role="status"></div>';
+
+    fetch(`/api/medicines/condition-search?condition=${encodeURIComponent(condition)}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayResults(data.medicines);
+        } else {
+            document.getElementById('resultsContainer').innerHTML = 
+                `<p class="text-danger">${data.error}</p>`;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('resultsContainer').innerHTML = 
+            '<p class="text-danger">Search failed. Please try again.</p>';
+    });
+});
+
+// Display search results
+function displayResults(medicines) {
+    currentSearchResults = medicines;
+    
+    if (!medicines || medicines.length === 0) {
+        document.getElementById('resultsContainer').innerHTML = 
+            '<p class="text-warning">No medicines found</p>';
+        return;
+    }
+
+    let html = '<div class="row">';
+    medicines.forEach(med => {
+        const imageUrl = med.image || 'https://via.placeholder.com/150/CCCCCC/FFFFFF?text=Medicine';
+        const emoji = med.emoji || '💊';
+        
+        html += `
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card h-100 shadow-sm hover-effect" style="cursor: pointer; transition: transform 0.2s; border: none;">
+                    <div class="card-body text-center p-3">
+                        <div class="mb-2" style="font-size: 40px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                            ${emoji}
+                        </div>
+                        <div style="height: 120px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 8px; margin-bottom: 10px;">
+                            <img src="${imageUrl}" alt="${med.name}" 
+                                 style="max-width: 95%; max-height: 95%; object-fit: contain;" 
+                                 onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\\'font-size:48px;\\'>💊</span>'"
+                                 loading="lazy">
+                        </div>
+                        <h6 class="card-title mb-2" style="font-weight: 600; font-size: 14px;">${med.name}</h6>
+                        <p class="card-text mb-2" style="margin: 0;">
+                            <span class="badge bg-info" style="font-size: 11px;">${med.category || 'Other'}</span>
+                        </p>
+                        ${med.description ? `<p class="small text-muted mb-2" style="min-height: 30px; font-size: 12px;">${med.description}</p>` : '<p class="small mb-2" style="min-height: 30px;"></p>'}
+                        <p class="text-success fw-bold mb-3" style="font-size: 15px;">₹${med.price || 'N/A'}</p>
+                        <button type="button" class="btn btn-sm btn-primary w-100" 
+                                onclick="viewMedicineDetails('${med.id || med.rxcui}', '${med.name}', ${JSON.stringify(med).replace(/'/g, '&quot;')})">
+                            <i class="fas fa-plus-circle"></i> Import
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+    
+    document.getElementById('resultsContainer').innerHTML = html;
+}
+
+// View medicine details and open import modal
+function viewMedicineDetails(medId, medName, medData) {
+    selectedMedicineId = medId;
+    document.getElementById('modalMedicineName').textContent = medName;
+    
+    const imageUrl = medData.image || 'https://via.placeholder.com/200/CCCCCC/FFFFFF?text=Medicine';
+    const emoji = medData.emoji || '💊';
+    
+    let detailsHtml = `
+        <div class="text-center mb-3">
+            <div style="font-size: 80px; margin-bottom: 10px;">${emoji}</div>
+            <div style="height: 180px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 8px; margin-bottom: 15px;">
+                <img src="${imageUrl}" alt="${medName}" 
+                     style="max-width: 95%; max-height: 95%; object-fit: contain;" 
+                     onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\\'font-size:80px;\\'>💊</span>'"
+                     loading="lazy">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Category:</strong> ${medData.category || 'Not specified'}</p>
+                <p><strong>Price:</strong> <span class="text-success fw-bold">₹${medData.price || '0'}</span></p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>ID:</strong> <code>${medId}</code></p>
+                <p><strong>Source:</strong> ${medData.source || 'Medicine Database'}</p>
+            </div>
+        </div>
+    `;
+    
+    if (medData.description) {
+        detailsHtml += `<p><strong>Description:</strong> ${medData.description}</p>`;
+    }
+    
+    if (medData.usage_instructions) {
+        detailsHtml += `<p><strong>Usage:</strong> ${medData.usage_instructions}</p>`;
+    }
+    
+    if (medData.side_effects) {
+        detailsHtml += `<p><strong>Side Effects:</strong> ${medData.side_effects}</p>`;
+    }
+    
+    document.getElementById('modalMedicineDetails').innerHTML = detailsHtml;
+    document.getElementById('importPrice').value = medData.price || '';
+    document.getElementById('importShopkeeper').value = '';
+    
+    new bootstrap.Modal(document.getElementById('medicineModal')).show();
+}
+
+// Import medicine
+function importMedicine() {
+    if (!selectedMedicineId) {
+        alert('No medicine selected');
+        return;
+    }
+
+    const price = document.getElementById('importPrice').value;
+    const shopkeeperId = document.getElementById('importShopkeeper').value;
+    
+    const btn = document.getElementById('importBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
+
+    fetch('/api/medicines/import', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            medicine_id: selectedMedicineId,
+            price: price ? parseFloat(price) : null,
+            shopkeeper_id: shopkeeperId || null
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`✓ ${data.message}`);
+            bootstrap.Modal.getInstance(document.getElementById('medicineModal')).hide();
+            loadDatabaseInfo(); // Refresh counts
+        } else {
+            alert(`✗ Error: ${data.error}`);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Import failed. Please try again.');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+}
+</script>
+
+<style>
+    .stat-item {
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+    }
+    
+    .stat-item h6 {
+        font-size: 24px;
+        margin-bottom: 5px;
+    }
+</style>
+{% endblock %}

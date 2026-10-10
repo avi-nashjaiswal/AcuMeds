@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}My Digital Prescriptions (Rx) - AcuMeds{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">💊 My Digital Prescriptions (Rx)</h2>
+      <p class="text-muted mb-0">Official e-prescriptions issued by your consulting doctors with 1-click cart fulfillment.</p>
+    </div>
+    <a href="{{ url_for('doctor_consultation.list_doctors') }}" class="btn btn-outline-primary fw-bold">
+      <i class="fas fa-user-md me-1"></i> Consult Doctor
+    </a>
+  </div>
+
+  {% if prescriptions %}
+    <div class="row g-4">
+      {% for rx in prescriptions %}
+        <div class="col-lg-6">
+          <div class="card border-0 shadow-sm rounded-3 h-100">
+            <div class="card-header bg-light border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+              <div>
+                <span class="badge bg-primary px-3 py-2 fw-bold">{{ rx.prescription_code }}</span>
+                <span class="text-muted small ms-2">{{ rx.created_at.strftime('%d %b, %Y') }}</span>
+              </div>
+              <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 small">
+                <i class="fas fa-check-circle me-1"></i> Verified Rx
+              </span>
+            </div>
+
+            <div class="card-body p-4">
+              <div class="d-flex align-items-center gap-3 mb-3">
+                <div style="width: 46px; height: 46px; border-radius: 50%; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                  👨‍⚕️
+                </div>
+                <div>
+                  <h5 class="fw-bold mb-0">{{ rx.doctor.user.full_name or 'Dr. Doctor' }}</h5>
+                  <div class="text-muted small">{{ rx.doctor.specialization }} • {{ rx.doctor.clinic_name or 'AcuMeds Clinic' }}</div>
+                </div>
+              </div>
+
+              <!-- Diagnosis -->
+              <div class="bg-light p-3 rounded-2 mb-3">
+                <div class="text-muted small fw-bold text-uppercase mb-1">Clinical Diagnosis</div>
+                <div class="fw-bold text-dark">{{ rx.diagnosis }}</div>
+              </div>
+
+              <!-- Prescribed Medications List -->
+              <div class="mb-4">
+                <div class="text-muted small fw-bold text-uppercase mb-2">Prescribed Medicines ({{ rx.items|length }})</div>
+                <ul class="list-group list-group-flush border rounded-2">
+                  {% for item in rx.items %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
+                      <div>
+                        <strong>{{ item.medicine_name }}</strong>
+                        <span class="text-muted small">({{ item.dosage or 'Standard' }})</span>
+                        <div class="text-muted small" style="font-size: 0.78rem;">{{ item.frequency }} • {{ item.timing }} • {{ item.duration }}</div>
+                      </div>
+                      <span class="badge bg-light text-dark border">Qty: {{ item.quantity }}</span>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+
+              <!-- Actions -->
+              <div class="d-flex gap-2">
+                <form method="POST" action="{{ url_for('doctor_consultation.add_prescription_to_cart', prescription_id=rx.id) }}" class="flex-grow-1">
+                  <button type="submit" class="btn btn-primary w-100 fw-bold">
+                    <i class="fas fa-cart-plus me-1"></i> 1-Click Order All Medicines
+                  </button>
+                </form>
+                <a href="{{ url_for('doctor_consultation.view_prescription', prescription_id=rx.id) }}" class="btn btn-outline-secondary fw-bold px-3">
+                  <i class="fas fa-file-invoice me-1"></i> View / Print
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center py-5 bg-light rounded-3">
+      <i class="fas fa-file-medical-alt fa-3x text-muted mb-3"></i>
+      <h4>No digital prescriptions found</h4>
+      <p class="text-muted">Once your consulting doctor issues a prescription, it will appear here for 1-click cart ordering and printing.</p>
+      <a href="{{ url_for('doctor_consultation.list_doctors') }}" class="btn btn-primary fw-bold">Consult a Doctor</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

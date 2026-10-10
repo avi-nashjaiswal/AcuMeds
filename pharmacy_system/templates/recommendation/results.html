@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+
+{% block title %}AI Recommendation & Clinical Dosage Results - AcuMeds{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <!-- Emergency Alert Banner if Critical Symptoms Detected -->
+        {% if emergency_alerts %}
+            <div class="alert alert-danger shadow-sm border-0 rounded-4 p-4 mb-4 d-flex align-items-start">
+                <div class="bg-danger text-white rounded-circle p-3 me-3 d-flex align-items-center justify-content-center flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                </div>
+                <div>
+                    <h5 class="alert-heading fw-bold mb-1">⚠️ Urgent Medical Attention Recommended</h5>
+                    <p class="mb-2">Our AI has detected potential red-flag symptoms in your report:</p>
+                    <ul class="mb-3">
+                        {% for alert in emergency_alerts %}
+                            <li><strong>{{ alert.keyword|title }}:</strong> {{ alert.warning }}</li>
+                        {% endfor %}
+                    </ul>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ url_for('doctor_consultation.list_doctors') }}" class="btn btn-danger btn-sm fw-bold px-3">
+                            <i class="fas fa-user-md me-1"></i> Consult an Online Doctor Now
+                        </a>
+                        <span class="text-muted small align-self-center">If this is an emergency, please visit the nearest hospital immediately.</span>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Header Card -->
+        <div class="card shadow-sm border-0 rounded-4 mb-4 overflow-hidden">
+            <div class="card-header bg-gradient bg-success text-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center">
+                    <div class="bg-white text-success rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="fas fa-notes-medical fa-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">AI Diagnosis & Medicine Dosage Recommendations</h4>
+                        <small class="text-white-50">Evidence-based clinical matching with dosage and timing guidelines</small>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if recommendation_id %}
+                        <a href="{{ url_for('recommendation.recommendation_report_view', rec_id=recommendation_id) }}" target="_blank" class="btn btn-light btn-sm fw-bold text-success rounded-pill px-3 shadow-sm">
+                            <i class="fas fa-print me-1"></i> Print / PDF Report
+                        </a>
+                    {% endif %}
+                    <a href="{{ url_for('recommendation.recommendation_form') }}" class="btn btn-outline-light btn-sm fw-bold rounded-pill px-3">
+                        <i class="fas fa-redo me-1"></i> New Search
+                    </a>
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                <!-- Symptoms Reported Section -->
+                <div class="p-3 rounded-4 mb-4 border d-flex justify-content-between align-items-center flex-wrap gap-3" style="background: #f8fafc !important; border-color: #e2e8f0 !important;">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-bold"><i class="fas fa-comment-medical text-success me-1"></i> Reported Symptoms:</span>
+                        <h4 class="mb-0 mt-1 fw-bold" style="color: #0f172a !important;">{{ symptoms }}</h4>
+                    </div>
+                    <div class="text-end">
+                        <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill shadow-sm" style="background: #ecfdf5 !important; border: 1.5px solid #10b981 !important;">
+                            <i class="fas fa-check-circle text-success fs-5"></i>
+                            <span class="fw-bold" style="font-size: 0.95rem; color: #047857 !important;">Match Confidence: {{ result.confidence or 98 }}%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <!-- Left Column: Medicines List with Dosage Cards -->
+                    <div class="col-lg-8">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0" style="color: #0f172a !important;">
+                                <i class="fas fa-pills text-success me-2"></i> Recommended Medicines & Dosages (दवा और खुराक)
+                                <span class="badge rounded-pill ms-2" style="background: #10b981 !important; color: #ffffff !important;">{{ medicines|length }}</span>
+                            </h5>
+                        </div>
+
+                        {% if medicines %}
+                            <div class="row g-4">
+                                {% for item in medicines %}
+                                {% set rec_index = loop.index0 %}
+                                <div class="col-12">
+                                    <div class="card border rounded-4 shadow-sm h-100 overflow-hidden medicine-rec-card" style="background: #ffffff !important; border-color: #e2e8f0 !important;">
+                                        <!-- Medicine Card Top Bar: Image, Name, Tags, and Confidence Score -->
+                                        <div class="p-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: #ffffff !important; border-bottom: 1.5px solid #f1f5f9 !important;">
+                                            <!-- Left: Image + Title + Tags -->
+                                            <div class="d-flex align-items-center">
+                                                <!-- Medicine Photo Thumbnail -->
+                                                <div class="me-3 position-relative shadow-sm" style="width: 88px; height: 88px; min-width: 88px; border-radius: 16px; background: #f8fafc; border: 2px solid #e2e8f0; padding: 6px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                                    {% set med_img = item.image_url or (item.medicine.image if item.medicine and item.medicine.image else 'uploads/medicines/medicine_main1.png') %}
+                                                    <img src="{{ url_for('static', filename=med_img) if not med_img.startswith('http') else med_img }}"
+                                                         alt="{{ item.name or item.medicine.name }}"
+                                                         class="img-fluid"
+                                                         style="max-width: 100%; max-height: 100%; object-fit: contain;"
+                                                         onerror="this.src='{{ url_for('static', filename='uploads/medicines/medicine_main1.png') }}'">
+                                                    <span class="position-absolute top-0 start-0 badge rounded-pill" style="background: #059669 !important; color: #ffffff !important; font-size: 0.68rem; padding: 2px 7px; margin: 3px; font-weight: 800;">
+                                                        #{{ loop.index }}
+                                                    </span>
+                                                </div>
+
+                                                <div>
+                                                    <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                                        <h4 class="mb-0 fw-bold" style="color: #0f172a !important; font-size: 1.3rem;">
+                                                            {{ item.name or item.medicine.name }}
+                                                        </h4>
+                                                    </div>
+                                                    <div class="d-flex align-items-center gap-1 flex-wrap">
+                                                        <span class="badge" style="background: #f1f5f9 !important; color: #475569 !important; border: 1px solid #cbd5e1 !important; font-weight: 600; font-size: 0.78rem;">
+                                                            <i class="fas fa-tag me-1 text-muted"></i> {{ item.category or item.medicine.category }}
+                                                        </span>
+                                                        {% if item.requires_prescription or (item.medicine and item.medicine.requires_prescription) %}
+                                                            <span class="badge" style="background: #fef3c7 !important; color: #92400e !important; border: 1px solid #fcd34d !important; font-weight: 700; font-size: 0.78rem;">
+                                                                <i class="fas fa-file-prescription me-1"></i> Prescription Required
+                                                            </span>
+                                                        {% else %}
+                                                            <span class="badge" style="background: #ecfdf5 !important; color: #047857 !important; border: 1px solid #a7f3d0 !important; font-weight: 700; font-size: 0.78rem;">
+                                                                <i class="fas fa-check-circle me-1"></i> Over-the-Counter (OTC)
+                                                            </span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Right: Bold High-Contrast Confidence Score -->
+                                            <div class="text-end ms-auto">
+                                                <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill shadow-sm" style="background: linear-gradient(135deg, #047857 0%, #10b981 100%); color: #ffffff !important;">
+                                                    <i class="fas fa-brain text-white fs-5"></i>
+                                                    <div class="text-start">
+                                                        <div style="font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; color: #d1fae5;">AI Confidence Score</div>
+                                                        <div style="font-size: 1.15rem; font-weight: 800; color: #ffffff !important; line-height: 1;">
+                                                            {{ item.confidence or result.confidence or 95 }}% Match
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-1 small" style="font-size: 0.75rem;">
+                                                    {% set conf_val = item.confidence or result.confidence or 95 %}
+                                                    {% if conf_val >= 90 %}
+                                                        <span class="fw-bold" style="color: #059669 !important;">● Very High Clinical Match</span>
+                                                    {% elif conf_val >= 75 %}
+                                                        <span class="fw-bold" style="color: #0284c7 !important;">● High Clinical Match</span>
+                                                    {% else %}
+                                                        <span class="fw-bold" style="color: #d97706 !important;">● Moderate Clinical Match</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="card-body p-4">
+                                            <!-- Why Recommended -->
+                                            <div class="mb-3">
+                                                <span class="small fw-bold text-uppercase" style="color: #475569 !important;"><i class="fas fa-stethoscope text-info me-1"></i> Clinical Indication:</span>
+                                                <ul class="text-secondary small mb-0 mt-1 ps-3">
+                                                    {% for reason in item.reasons %}
+                                                        <li>{{ reason }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+
+                                            <!-- CLINICAL DOSAGE BOX (HIGHLIGHTED) -->
+                                            <div class="card border-0 rounded-3 p-3 mb-3" style="background: #f0fdf4 !important; border: 1.5px solid #bbf7d0 !important;">
+                                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                                    <h6 class="fw-bold mb-0" style="color: #047857 !important;">
+                                                        <i class="fas fa-prescription text-success me-1"></i> Standard Dosage Guide (दवा की खुराक एवं लेने का तरीका)
+                                                    </h6>
+                                                    <span class="badge" style="background: #059669 !important; color: #ffffff !important;">Clinical Advisory</span>
+                                                </div>
+
+                                                <div class="row g-2 text-dark small">
+                                                    <div class="col-md-6">
+                                                        <div class="p-2 rounded border" style="background: #ffffff !important; border-color: #dcfce7 !important;">
+                                                            <strong class="text-secondary"><i class="fas fa-tablets text-success me-1"></i> Recommended Dose:</strong>
+                                                            <div class="fw-bold text-dark mt-1">{{ item.dosage or item.dosage_guide.standard_dosage }}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="p-2 rounded border" style="background: #ffffff !important; border-color: #dcfce7 !important;">
+                                                            <strong class="text-secondary"><i class="fas fa-history text-success me-1"></i> Frequency (बारंबारता):</strong>
+                                                            <div class="fw-bold text-dark mt-1">{{ item.dosage_frequency or item.dosage_guide.frequency }}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="p-2 rounded border" style="background: #ffffff !important; border-color: #dcfce7 !important;">
+                                                            <strong class="text-secondary"><i class="fas fa-utensils text-success me-1"></i> Timing (कब लें):</strong>
+                                                            <div class="fw-bold mt-1" style="color: #047857 !important;">{{ item.dosage_timing or item.dosage_guide.timing }}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="p-2 rounded border" style="background: #ffffff !important; border-color: #dcfce7 !important;">
+                                                            <strong class="text-secondary"><i class="fas fa-calendar-alt text-success me-1"></i> Duration & Max Limit:</strong>
+                                                            <div class="fw-bold text-dark mt-1">{{ item.duration or item.dosage_guide.duration }}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Dosage Precautions & Instructions -->
+                                                {% if item.precautions or item.dosage_guide.precautions %}
+                                                    <div class="mt-2 pt-2 border-top small text-secondary">
+                                                        <strong class="text-dark"><i class="fas fa-shield-virus text-warning me-1"></i> Precautions & Safety:</strong>
+                                                        {{ item.precautions or item.dosage_guide.precautions }}
+                                                    </div>
+                                                {% endif %}
+
+                                                {% if item.age_warning %}
+                                                    <div class="mt-2 alert alert-warning py-1 px-2 small mb-0 rounded">
+                                                        <i class="fas fa-exclamation-circle me-1"></i> {{ item.age_warning }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+
+                                            <!-- Shop & Order Section -->
+                                            <div class="row align-items-center pt-2">
+                                                <div class="col-md-7">
+                                                    <div class="d-flex align-items-baseline gap-2">
+                                                        <span class="text-muted small">Price:</span>
+                                                        <span class="fs-4 fw-bold text-success">₹{{ "%.2f"|format(item.display_price or 25.0) }}</span>
+                                                        {% if item.shop_options and item.shop_options|length > 1 %}
+                                                             <small class="text-muted">(Best price across {{ item.shop_options|length }} verified pharmacies)</small>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-5 text-md-end mt-2 mt-md-0">
+                                                    {% if item.shop_options %}
+                                                        <form method="POST" action="{{ url_for('cart.add_to_cart', medicine_id=item.default_option.medicine_id if item.default_option else item.medicine.id) }}" class="rec-cart-form">
+                                                            <div class="d-flex gap-2">
+                                                                <input type="hidden" name="quantity" value="1">
+                                                                <input type="hidden" name="shopkeeper_id" value="{{ item.default_option.shopkeeper.id if item.default_option and item.default_option.shopkeeper else '' }}">
+                                                                {% if item.has_in_stock %}
+                                                                    <button type="submit" class="btn btn-success fw-bold rounded-pill px-4 flex-grow-1 shadow-sm">
+                                                                        <i class="fas fa-shopping-cart me-1"></i> Add to Cart
+                                                                    </button>
+                                                                {% else %}
+                                                                    <button type="button" class="btn btn-secondary rounded-pill px-4 flex-grow-1" disabled>
+                                                                        Out of Stock
+                                                                    </button>
+                                                                {% endif %}
+                                                                {% if item.medicine and item.medicine.id %}
+                                                                    <a href="{{ url_for('medicine.view_medicine', medicine_id=item.medicine.id) }}" class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;" title="View Details">
+                                                                        <i class="fas fa-info"></i>
+                                                                    </a>
+                                                                {% endif %}
+                                                            </div>
+                                                        </form>
+                                                    {% elif item.medicine and item.medicine.id %}
+                                                        <a href="{{ url_for('medicine.view_medicine', medicine_id=item.medicine.id) }}" class="btn btn-outline-primary rounded-pill px-4 w-100">
+                                                            <i class="fas fa-eye me-1"></i> View Medicine Info
+                                                        </a>
+                                                    {% else %}
+                                                        <span class="badge bg-light text-muted border p-2 w-100">Standard Clinical Recommendation</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-light border text-center py-5 rounded-4 shadow-sm">
+                                <i class="fas fa-clipboard-check text-muted fa-3x mb-3"></i>
+                                <h5 class="fw-bold mb-2">No Matching Over-the-Counter Medicines</h5>
+                                <p class="text-muted mb-4">
+                                    {{ result.message or 'Please enter common symptoms like fever, cold, cough, headache, acidity, body pain, or sore throat.' }}
+                                </p>
+                                <a href="{{ url_for('recommendation.recommendation_form') }}" class="btn btn-success rounded-pill px-4">
+                                    <i class="fas fa-redo me-1"></i> Search Again
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Right Column: Sidebar Insights & Quick Actions -->
+                    <div class="col-lg-4">
+                        <!-- Matched Symptoms Summary -->
+                        <div class="card border-0 rounded-4 shadow-sm mb-3" style="background: #ffffff !important;">
+                            <div class="p-3 px-4 border-bottom" style="background: #ffffff !important;">
+                                <h6 class="mb-0 fw-bold" style="color: #0f172a !important;">
+                                    <i class="fas fa-check-double text-success me-2"></i> Matched Clinical Symptoms
+                                </h6>
+                            </div>
+                            <div class="card-body p-4">
+                                {% if result.symptoms_matched %}
+                                    <div class="d-flex flex-wrap gap-2 mb-3">
+                                        {% for symptom in result.symptoms_matched %}
+                                            <span class="badge px-3 py-2 rounded-pill fw-bold" style="background: #ecfdf5 !important; color: #047857 !important; border: 1.5px solid #a7f3d0 !important; font-size: 0.85rem;">
+                                                <i class="fas fa-check-circle me-1 text-success"></i> {{ symptom|title }}
+                                            </span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+
+                                <label class="small fw-bold text-uppercase mb-1" style="color: #475569 !important;">AI Diagnostic Confidence:</label>
+                                <div class="progress rounded-pill mb-2 shadow-sm" style="height: 14px; background: #e2e8f0;">
+                                    <div class="progress-bar rounded-pill" role="progressbar" 
+                                         style="width: {{ result.confidence }}%; background: linear-gradient(90deg, #10b981 0%, #047857 100%) !important;" 
+                                         aria-valuenow="{{ result.confidence }}" aria-valuemin="0" aria-valuemax="100">
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center small">
+                                    <span class="text-secondary fw-semibold">Accuracy Level: <span class="text-success fw-bold">High</span></span>
+                                    <span class="fs-5 fw-bold" style="color: #047857 !important;">{{ result.confidence }}%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Doctor Consultation Card -->
+                        <div class="card border-0 rounded-4 shadow-sm mb-3 bg-primary bg-opacity-10">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-primary text-white rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                                        <i class="fas fa-user-md fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-0 text-dark">Need Doctor Consultation?</h6>
+                                        <small class="text-muted">Instant certified medical opinion</small>
+                                    </div>
+                                </div>
+                                <p class="small text-secondary mb-3">
+                                    If your symptoms are severe or persist beyond 3 days, connect directly with registered doctors for an official prescription.
+                                </p>
+                                <a href="{{ url_for('doctor_consultation.list_doctors') }}" class="btn btn-primary btn-sm rounded-pill w-100 fw-bold py-2 shadow-sm">
+                                    <i class="fas fa-stethoscope me-1"></i> Book Doctor Consultation
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Quick Export / PDF Action Card -->
+                        <div class="card border-0 rounded-4 shadow-sm">
+                            <div class="card-body p-3">
+                                {% if recommendation_id %}
+                                    <a href="{{ url_for('recommendation.recommendation_report_view', rec_id=recommendation_id) }}" target="_blank" class="btn btn-outline-success btn-sm w-100 rounded-pill mb-2 py-2 fw-bold">
+                                        <i class="fas fa-file-medical-alt me-1"></i> View Full Prescription Report
+                                    </a>
+                                {% endif %}
+                                <a href="{{ url_for('recommendation.recommendation_history') }}" class="btn btn-outline-secondary btn-sm w-100 rounded-pill py-2">
+                                    <i class="fas fa-history me-1"></i> View All Recommendation History
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

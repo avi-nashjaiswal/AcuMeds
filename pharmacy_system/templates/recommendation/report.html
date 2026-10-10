@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}AI Clinical Recommendation & Dosage Report - AcuMeds{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Printable Prescription / Medical Report Card -->
+        <div class="card border shadow-lg rounded-4 overflow-hidden mb-4" id="printableReport">
+            <!-- Medical Report Header -->
+            <div class="card-header bg-white border-bottom p-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-success text-white rounded-3 p-3 me-3 d-flex align-items-center justify-content-center" style="width: 54px; height: 54px;">
+                            <i class="fas fa-notes-medical fa-2x"></i>
+                        </div>
+                        <div>
+                            <h3 class="fw-bold text-success mb-0">AcuMeds Health & Pharmacy</h3>
+                            <small class="text-muted fw-semibold">Automated AI Clinical Recommendation & Dosage Report</small>
+                        </div>
+                    </div>
+                    <div class="text-md-end">
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill fw-bold">
+                            Report ID: #REC-{{ recommendation_id }}
+                        </span>
+                        <div class="text-muted small mt-1">Date: {{ recommendation_date or 'N/A' }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-4 p-md-5">
+                <!-- Patient Details & Symptoms -->
+                <div class="row g-3 bg-light rounded-3 p-3 mb-4 border">
+                    <div class="col-md-6">
+                        <div class="text-muted small text-uppercase fw-bold">Patient Name:</div>
+                        <h5 class="fw-bold text-dark mb-1">{{ patient_name or 'Valued Customer' }}</h5>
+                        <div class="text-muted small">Condition Title: <strong>{{ recommendation.symptom_title or 'General Health Consultation' }}</strong></div>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <div class="text-muted small text-uppercase fw-bold">Diagnostic Match Confidence:</div>
+                        <h5 class="fw-bold text-success mb-1">{{ confidence }}%</h5>
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary border">Automated Clinical NLP Protocol</span>
+                    </div>
+                </div>
+
+                <!-- Reported Symptoms -->
+                <div class="mb-4">
+                    <h6 class="fw-bold text-dark text-uppercase small"><i class="fas fa-stethoscope text-success me-1"></i> Patient Reported Symptoms:</h6>
+                    <p class="lead text-secondary bg-white p-3 border rounded-3 mb-0">{{ symptoms }}</p>
+                </div>
+
+                <!-- Detailed Medicine & Dosage Matrix Table -->
+                <div class="mb-4">
+                    <h5 class="fw-bold text-dark mb-3">
+                        <i class="fas fa-pills text-success me-2"></i> Recommended Medicines & Clinical Dosage Guide (दवा एवं खुराक तालिका)
+                    </h5>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-success text-dark">
+                                <tr>
+                                    <th style="width: 25%;">Medicine & Category</th>
+                                    <th style="width: 20%;">Recommended Dose</th>
+                                    <th style="width: 20%;">Frequency & Timing</th>
+                                    <th style="width: 15%;">Duration</th>
+                                    <th style="width: 20%;">Safety & Precautions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if medicines %}
+                                    {% for item in medicines %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div style="width: 50px; height: 50px; min-width: 50px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 3px; display: flex; align-items: center; justify-content: center;">
+                                                    {% set rep_img = item.image_url or (item.medicine.image if item.medicine and item.medicine.image else 'uploads/medicines/medicine_main1.png') %}
+                                                    <img src="{{ url_for('static', filename=rep_img) if not rep_img.startswith('http') else rep_img }}" 
+                                                         alt="{{ item.name }}" 
+                                                         style="max-width: 100%; max-height: 100%; object-fit: contain;"
+                                                         onerror="this.src='{{ url_for('static', filename='uploads/medicines/medicine_main1.png') }}'">
+                                                </div>
+                                                <div>
+                                                    <strong class="text-dark fs-6">{{ item.name or item.medicine.name }}</strong>
+                                                    <span class="badge" style="background: #ecfdf5 !important; color: #047857 !important; border: 1px solid #a7f3d0 !important; font-size: 0.72rem;">{{ item.confidence or 95 }}% Match</span>
+                                                    <br>
+                                                    <span class="badge bg-light text-secondary border small">{{ item.category or item.medicine.category }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="small text-muted mt-1">
+                                                <em>{{ item.reasons[0] if item.reasons else 'Clinically indicated' }}</em>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <strong class="text-success">{{ item.dosage or item.dosage_guide.standard_dosage }}</strong>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold text-dark">{{ item.dosage_frequency or item.dosage_guide.frequency }}</div>
+                                            <small class="text-success fw-bold"><i class="fas fa-clock me-1"></i> {{ item.dosage_timing or item.dosage_guide.timing }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border">{{ item.duration or item.dosage_guide.duration }}</span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ item.precautions or item.dosage_guide.precautions }}</small>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-3">No specific medicines found.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Clinical Advisory Notes -->
+                <div class="alert alert-warning border-0 rounded-3 p-3 mb-4 bg-warning bg-opacity-10">
+                    <h6 class="fw-bold text-dark mb-1"><i class="fas fa-info-circle text-warning me-1"></i> Important Instructions:</h6>
+                    <ul class="small text-secondary mb-0 ps-3">
+                        <li>Take medications strictly as instructed with adequate water and balanced meals.</li>
+                        <li>Do not exceed the maximum daily doses mentioned in this report.</li>
+                        <li>If symptoms do not improve within 3-5 days or worsen, consult a licensed medical practitioner immediately.</li>
+                        <li>Keep all medicines out of reach of children and store in a cool, dry place away from direct sunlight.</li>
+                    </ul>
+                </div>
+
+                <!-- Footer Signatures & Print Actions -->
+                <div class="d-flex justify-content-between align-items-end pt-4 border-top flex-wrap gap-3">
+                    <div>
+                        <small class="text-muted">AcuMeds Healthcare AI Platform &bull; Validated with Clinical Pharmacology Rules</small>
+                    </div>
+                    <div class="d-print-none d-flex gap-2">
+                        <button type="button" onclick="window.print();" class="btn btn-success fw-bold rounded-pill px-4">
+                            <i class="fas fa-print me-1"></i> Print / Save as PDF
+                        </button>
+                        <a href="{{ url_for('recommendation.recommendation_results', rec_id=recommendation_id) }}" class="btn btn-outline-secondary rounded-pill px-4">
+                            <i class="fas fa-arrow-left me-1"></i> Back to Results
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .d-print-none, nav, footer, header, .navbar {
+        display: none !important;
+    }
+    body {
+        background-color: #fff !important;
+    }
+    #printableReport {
+        border: none !important;
+        box-shadow: none !important;
+    }
+}
+</style>
+{% endblock %}

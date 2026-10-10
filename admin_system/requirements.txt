@@ -1,0 +1,8 @@
+Flask==2.3.0
+Flask-SQLAlchemy==3.0.3
+Flask-Login==0.6.2
+Werkzeug==2.3.0
+Pillow==10.0.0
+requests==2.31.0
+urllib3==1.26.16
+charset_normalizer==2.1.1

@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Pharmacy Vendors & Shops - AcuMeds{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row mb-5">
+        <div class="col-lg-8">
+            <h1 class="display-5 fw-bold mb-2">
+                <i class="fas fa-store"></i> Our Pharmacy Partners
+            </h1>
+            <p class="lead text-muted">Verified pharmacies where you can buy medicines</p>
+        </div>
+        <div class="col-lg-4 text-end">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-secondary active" id="gridView" title="Grid View">
+                    <i class="fas fa-th"></i> Grid
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="listView" title="List View">
+                    <i class="fas fa-list"></i> List
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {% if shopkeepers %}
+        <!-- Grid View (Default) -->
+        <div id="gridContainer" class="row g-4">
+            {% for shopkeeper_data in shopkeepers %}
+                {% set shopkeeper = shopkeeper_data.shopkeeper %}
+                {% set medicine_count = shopkeeper_data.medicine_count %}
+                {% set trust = shopkeeper_data.trust %}
+                
+                <div class="col-md-6 col-lg-4 vendor-card">
+                    <div class="card h-100 shadow-sm border-0 hover-card" style="transition: all 0.3s; cursor: pointer;">
+                        <!-- Shop Header with verified badge -->
+                        <div class="card-header bg-light border-0" style="position: relative; padding: 20px;">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="card-title fw-bold mb-1">{{ shopkeeper.shop_name }}</h5>
+                                    <small class="text-success"><i class="fas fa-check-circle"></i> Verified Pharmacy</small>
+                                </div>
+                                <span class="badge bg-{{ trust.badge_class }}">Trust {{ trust.score }}/99</span>
+                            </div>
+                        </div>
+
+                        <!-- Shop Details -->
+                        <div class="card-body">
+                            <!-- Location -->
+                            <div class="mb-3">
+                                <small class="text-muted"><i class="fas fa-map-marker-alt"></i> Location</small>
+                                <p class="card-text fw-500">{{ shopkeeper.city }}</p>
+                            </div>
+
+                            <!-- Contact Info -->
+                            <div class="mb-3">
+                                <small class="text-muted"><i class="fas fa-phone"></i> Contact</small>
+                                <p class="card-text">
+                                    <a href="tel:{{ shopkeeper.contact_number }}" class="text-decoration-none">
+                                        {{ shopkeeper.contact_number }}
+                                    </a>
+                                </p>
+                            </div>
+
+                            <!-- Medicines Available -->
+                            <div class="mb-3 p-3 bg-light rounded">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-pills text-primary"></i> 
+                                    <strong>{{ medicine_count }}</strong> 
+                                    <span class="text-muted">Medicines Available</span>
+                                </h6>
+                            </div>
+
+                            <div class="mb-3 p-3 border rounded">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <small class="text-muted">Trust Score</small>
+                                    <small class="fw-bold">{{ trust.score }}/99</small>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-{{ trust.badge_class }}" role="progressbar" style="width: {{ trust.score }}%;" aria-valuenow="{{ trust.score }}" aria-valuemin="0" aria-valuemax="99"></div>
+                                </div>
+                                <small class="text-muted d-block mt-2">{{ trust.tier }}</small>
+                            </div>
+
+                            <!-- License Info -->
+                            {% if shopkeeper.license_number %}
+                                <small class="text-muted d-block">
+                                    <i class="fas fa-certificate"></i> License: {{ shopkeeper.license_number }}
+                                </small>
+                            {% endif %}
+                        </div>
+
+                        <!-- Footer with View Medicines Button -->
+                        <div class="card-footer bg-white border-top d-grid">
+                            <a href="{{ url_for('main_bp_final_unique.vendor_detail', shopkeeper_id=shopkeeper.id) }}" class="btn btn-primary">
+                                <i class="fas fa-store"></i> View Medicines from {{ shopkeeper.shop_name }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- List View (Hidden by default) -->
+        <div id="listContainer" class="table-responsive" style="display: none;">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">Shop Name</th>
+                        <th scope="col">City</th>
+                        <th scope="col">Contact</th>
+                        <th scope="col">Medicines</th>
+                        <th scope="col">License</th>
+                        <th scope="col">Trust</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for shopkeeper_data in shopkeepers %}
+                        {% set shopkeeper = shopkeeper_data.shopkeeper %}
+                        {% set medicine_count = shopkeeper_data.medicine_count %}
+                        {% set trust = shopkeeper_data.trust %}
+                        
+                        <tr>
+                            <td>
+                                <strong>{{ shopkeeper.shop_name }}</strong><br>
+                                <small class="text-success"><i class="fas fa-check-circle"></i> Verified</small>
+                            </td>
+                            <td>{{ shopkeeper.city }}</td>
+                            <td>
+                                <a href="tel:{{ shopkeeper.contact_number }}" class="text-decoration-none">
+                                    {{ shopkeeper.contact_number }}
+                                </a>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ medicine_count }} available</span>
+                            </td>
+                            <td>
+                                {% if shopkeeper.license_number %}
+                                    <small>{{ shopkeeper.license_number }}</small>
+                                {% else %}
+                                    <small class="text-muted">Not available</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ trust.badge_class }}">{{ trust.score }}/99</span>
+                                <div><small class="text-muted">{{ trust.tier }}</small></div>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('main_bp_final_unique.vendor_detail', shopkeeper_id=shopkeeper.id) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-store"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    <!-- Info Section -->
+    <div class="row mt-5 pt-5 border-top">
+        <div class="col-md-6 mb-4">
+            <h5 class="fw-bold mb-3">
+                <i class="fas fa-shield-alt text-success"></i> Why We Verify Pharmacies
+            </h5>
+            <p class="text-muted">
+                All pharmacies in our network are verified for:
+            </p>
+            <ul class="text-muted">
+                <li>Valid pharmacy license</li>
+                <li>Authentic medicines</li>
+                <li>Professional service</li>
+                <li>Customer safety</li>
+            </ul>
+        </div>
+        <div class="col-md-6 mb-4">
+            <h5 class="fw-bold mb-3">
+                <i class="fas fa-question-circle text-primary"></i> How to Order
+            </h5>
+            <ol class="text-muted">
+                <li>Browse medicines from any vendor</li>
+                <li>Add medicines to your cart</li>
+                <li>Proceed to checkout</li>
+                <li>Select your preferred pharmacy</li>
+                <li>Complete payment and delivery</li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-card {
+        transition: all 0.3s ease;
+    }
+    
+    .hover-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    .card-title {
+        color: #2c3e50;
+    }
+    
+    .vendor-card {
+        transition: all 0.3s ease;
+    }
+</style>
+
+<script>
+    document.getElementById('gridView').addEventListener('click', function() {
+        document.getElementById('gridContainer').style.display = 'grid';
+        this.parentElement.style.gridTemplateColumns = 'auto auto';
+        document.getElementById('listContainer').style.display = 'none';
+        
+        document.getElementById('gridView').classList.add('active');
+        document.getElementById('listView').classList.remove('active');
+    });
+    
+    document.getElementById('listView').addEventListener('click', function() {
+        document.getElementById('gridContainer').style.display = 'none';
+        document.getElementById('listContainer').style.display = 'table';
+        
+        document.getElementById('listView').classList.add('active');
+        document.getElementById('gridView').classList.remove('active');
+    });
+</script>
+{% endblock %}

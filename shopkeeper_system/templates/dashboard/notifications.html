@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications - AcuMeds Shopkeeper{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-lg-12">
+        <h1><i class="fas fa-bell"></i> Notifications</h1>
+        <p class="text-muted">Latest updates from the admin and system</p>
+    </div>
+</div>
+
+{% if notifications %}
+<div class="card">
+    <div class="list-group list-group-flush">
+        {% for note in notifications %}
+        <div class="list-group-item">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1 me-3">
+                    <strong>{{ note.title }}</strong>
+                    <div class="text-muted small">{{ note.created_at.strftime('%Y-%m-%d %H:%M') if note.created_at else '' }}</div>
+                </div>
+                <div class="d-flex flex-column align-items-end gap-2">
+                    {% if not note.is_read %}
+                        <span class="badge bg-warning text-dark">New</span>
+                    {% endif %}
+                    {% if note.related_order_id %}
+                        <a href="{{ url_for('dashboard.orders', open_order=note.related_order_id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i> View Order
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <p class="mb-0 mt-2">{{ note.message }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info text-center py-5">
+    <i class="fas fa-inbox" style="font-size: 3rem; opacity: 0.5;"></i>
+    <h5 class="mt-3">No notifications yet</h5>
+    <p class="text-muted">System updates will appear here.</p>
+</div>
+{% endif %}
+{% endblock %}

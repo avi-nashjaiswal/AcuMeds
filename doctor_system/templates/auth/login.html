@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Login{% endblock %}
+
+{% block auth_content %}
+<div style="background: white; border-radius: 24px; padding: 40px; width: 100%; max-width: 440px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);">
+  <div style="text-align: center; margin-bottom: 28px;">
+    <div style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #0f766e, #0284c7); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 12px; box-shadow: 0 8px 20px rgba(15,118,110,0.3);">
+      <i class="fa-solid fa-user-doctor"></i>
+    </div>
+    <h2 style="font-size: 1.6rem; font-weight: 800; color: #0f172a;">Doctor Portal</h2>
+    <p style="color: #64748b; font-size: 0.9rem; margin-top: 4px;">Sign in to your clinical consultation console</p>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" style="margin-bottom: 18px;">
+          <span>{{ message }}</span>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" action="{{ url_for('auth.login') }}">
+    <div style="margin-bottom: 18px;">
+      <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Doctor Username or Email</label>
+      <input type="text" name="username" required placeholder="doctor1 or dr.rajesh@acumeds.com" value="doctor1" style="width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.92rem; outline: none; transition: border 0.2s;">
+    </div>
+
+    <div style="margin-bottom: 22px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <label style="font-size: 0.85rem; font-weight: 700; color: #334155;">Password</label>
+      </div>
+      <input type="password" name="password" required placeholder="••••••••" value="doctor123" style="width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.92rem; outline: none;">
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; font-size: 0.85rem;">
+      <label style="display: flex; align-items: center; gap: 8px; color: #475569; cursor: pointer;">
+        <input type="checkbox" name="remember" checked> Keep me logged in
+      </label>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1rem; border-radius: 12px; margin-bottom: 18px;">
+      <i class="fa-solid fa-lock"></i> Access Clinical Dashboard
+    </button>
+  </form>
+
+  <div style="text-align: center; border-top: 1px solid #f1f5f9; padding-top: 18px; font-size: 0.88rem; color: #64748b;">
+    New Medical Practitioner? <a href="{{ url_for('auth.register') }}" style="color: #0f766e; font-weight: 700;">Join AcuMeds Doctor Network</a>
+  </div>
+
+  <div style="margin-top: 20px; background: #f0fdfa; border: 1px solid #ccfbf1; border-radius: 10px; padding: 10px 14px; font-size: 0.8rem; color: #115e59; text-align: center;">
+    <strong>Demo Doctor Credentials:</strong><br>
+    Username: <code>doctor1</code> | Password: <code>doctor123</code>
+  </div>
+</div>
+{% endblock %}

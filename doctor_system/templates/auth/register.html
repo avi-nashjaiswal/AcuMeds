@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Registration{% endblock %}
+
+{% block auth_content %}
+<div style="background: white; border-radius: 24px; padding: 36px; width: 100%; max-width: 640px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); margin: 24px 16px;">
+  <div style="text-align: center; margin-bottom: 24px;">
+    <div style="width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, #0f766e, #0284c7); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 8px;">
+      <i class="fa-solid fa-stethoscope"></i>
+    </div>
+    <h2 style="font-size: 1.5rem; font-weight: 800; color: #0f172a;">Doctor Registration</h2>
+    <p style="color: #64748b; font-size: 0.88rem;">Join AcuMeds Telemedicine & e-Prescription Network</p>
+  </div>
+
+  <form method="POST" action="{{ url_for('auth.register') }}">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+      <div>
+        <label style="font-size: 0.82rem; font-weight: 700; color: #334155;">Full Name (with Dr. prefix)</label>
+        <input type="text" name="full_name" required placeholder="Dr. Rajesh Sharma" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+      <div>
+        <label style="font-size: 0.82rem; font-weight: 700; color: #334155;">Medical License Number</label>
+        <input type="text" name="license_number" required placeholder="MCI-DL-2015-12345" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+      <div>
+        <label style="font-size: 0.82rem; font-weight: 700; color: #334155;">Username</label>
+        <input type="text" name="username" required placeholder="dr_rajesh" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+      <div>
+        <label style="font-size: 0.82rem; font-weight: 700; color: #334155;">Email Address</label>
+        <input type="email" name="email" required placeholder="doctor@clinic.com" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+      <div>
+        <label style="font-size: 0.82rem; font-weight: 700; color: #334155;">Specialization</label>
+        <input type="text" name="specialization" required placeholder="e.g. Cardiology, Pediatrics, General Physician" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+      <div>
+        <label style="font-size: 0.82rem; font-weight: 700; color: #334155;">Qualifications</label>
+        <input type="text" name="qualification" required placeholder="MBBS, MD, DM" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+      <div>
+        <label style="font-size: 0.82rem; font-weight: 700; color: #334155;">Years Experience</label>
+        <input type="number" name="experience_years" min="1" value="5" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+      <div>
+        <label style="font-size: 0.82rem; font-weight: 700; color: #334155;">Consultation Fee (₹)</label>
+        <input type="number" name="consultation_fee" min="0" step="50" value="300" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+      <div>
+        <label style="font-size: 0.82rem; font-weight: 700; color: #334155;">City</label>
+        <input type="text" name="city" value="Delhi" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+    </div>
+
+    <div style="margin-bottom: 14px;">
+      <label style="font-size: 0.82rem; font-weight: 700; color: #334155;">Clinic / Hospital Name</label>
+      <input type="text" name="clinic_name" placeholder="AcuMeds Health Clinic" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px;">
+      <div>
+        <label style="font-size: 0.82rem; font-weight: 700; color: #334155;">Contact Phone</label>
+        <input type="tel" name="phone" placeholder="+91 98765 43210" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+      <div>
+        <label style="font-size: 0.82rem; font-weight: 700; color: #334155;">Create Password</label>
+        <input type="password" name="password" required placeholder="••••••••" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem; border-radius: 10px; margin-bottom: 14px;">
+      <i class="fa-solid fa-circle-check"></i> Register Doctor Profile
+    </button>
+  </form>
+
+  <div style="text-align: center; border-top: 1px solid #f1f5f9; padding-top: 14px; font-size: 0.85rem; color: #64748b;">
+    Already registered? <a href="{{ url_for('auth.login') }}" style="color: #0f766e; font-weight: 700;">Sign in here</a>
+  </div>
+</div>
+{% endblock %}

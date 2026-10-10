@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AcuMeds Project Report</title>
+<style>
+    :root { --bg: #f7f4ef; --paper: #ffffff; --text: #1f2937; --muted: #4b5563; --accent: #0f766e; --border: #d1d5db; }
+    body { margin: 0; background: linear-gradient(180deg, #f7f4ef 0%, #eef6f5 100%); color: var(--text); font-family: Georgia, 'Times New Roman', serif; line-height: 1.55; }
+    .page { max-width: 980px; margin: 0 auto; background: var(--paper); min-height: 100vh; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08); }
+    .hero { padding: 72px 64px 48px; text-align: center; border-bottom: 1px solid var(--border); }
+    .hero h1 { margin: 0; font-size: 3rem; letter-spacing: 0.03em; color: var(--accent); }
+    .hero h2 { margin: 14px 0 0; font-size: 1.5rem; font-weight: 600; }
+    .hero p { color: var(--muted); max-width: 760px; margin: 18px auto 0; }
+    .content { padding: 42px 64px 72px; }
+    h1, h2, h3, h4 { color: #111827; }
+    h2 { margin-top: 2.2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.35rem; }
+    h3 { margin-top: 1.4rem; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0 1.4rem; font-size: 0.96rem; }
+    th, td { border: 1px solid var(--border); padding: 0.6rem 0.75rem; vertical-align: top; }
+    th { background: #eff6f5; text-align: left; }
+    blockquote { margin: 1rem 0; padding: 0.75rem 1rem; border-left: 4px solid var(--accent); background: #f3fbfa; color: #0f172a; }
+    code { font-family: Consolas, 'Courier New', monospace; font-size: 0.95em; background: #f4f4f5; padding: 0.12rem 0.28rem; border-radius: 4px; }
+    pre { background: #111827; color: #e5e7eb; padding: 1rem 1.1rem; border-radius: 10px; overflow-x: auto; }
+    pre code { background: transparent; padding: 0; color: inherit; }
+    .page-break { break-after: page; page-break-after: always; height: 0; margin: 0; padding: 0; }
+    hr { border: 0; border-top: 1px solid var(--border); margin: 2rem 0; }
+    ul, ol { padding-left: 1.4rem; }
+    .notice { margin-top: 12px; font-size: 0.95rem; color: var(--muted); }
+    @media (max-width: 768px) { .hero, .content { padding-left: 20px; padding-right: 20px; } .hero h1 { font-size: 2.2rem; } .hero h2 { font-size: 1.15rem; } }
+    @media print { body { background: #fff; } .page { box-shadow: none; max-width: none; } .hero { padding-top: 28px; } }
+</style>
+</head>
+<body>
+<div class="page">
+    <header class="hero">
+        <h1>AcuMeds</h1>
+        <h2>Integrated Online Pharmacy Management System with AI-Based Recommendation and Multi-Portal Workflow</h2>
+        <p>Open this link on any device to read the full report in a browser.</p>
+        <div class="notice">You can use the browser print option to save a PDF copy.</div>
+    </header>
+    <main class="content">
+        <h2 id="declaration">Declaration</h2>
+<p>I hereby declare that the project report titled "AcuMeds: Integrated Online Pharmacy Management System with AI-Based Recommendation and Multi-Portal Workflow" is an original work carried out by me under the guidance of [Guide Name]. The work presented in this report has not been submitted to any other institution or university for the award of any degree or diploma.</p>
+<p>I also declare that all the sources of information used in the preparation of this report have been duly acknowledged in the references section. Any resemblance to other work is purely coincidental unless explicitly cited.</p>
+<p>Date: [Date]</p>
+<p>Place: [Place]</p>
+<p>Signature of the Student: <strong><em>_</em></strong><strong><em>_</em></strong>______</p>
+<div class="page-break"></div>
+
+<h2 id="certificate">Certificate</h2>
+<p>This is to certify that [Your Name] has successfully completed the project entitled "AcuMeds: Integrated Online Pharmacy Management System with AI-Based Recommendation and Multi-Portal Workflow" under my supervision. The work submitted in this report is a bona fide record of the project carried out by the student during the academic session [Academic Session].</p>
+<p>This project report is submitted in partial fulfillment of the requirements for the award of [Degree Name].</p>
+<p>Signature of the Guide: <strong><em>_</em></strong><strong><em>_</em></strong>______</p>
+<p>Name of the Guide: [Guide Name]</p>
+<p>Signature of the Head of Department: <strong><em>_</em></strong><strong><em>_</em></strong>______</p>
+<p>Name of the Head of Department: [HOD Name]</p>
+<p>Institution Seal:</p>
+<div class="page-break"></div>
+
+<h2 id="acknowledgement">Acknowledgement</h2>
+<p>I express my sincere gratitude to my project guide, faculty members, and everyone who supported the development of this project report. The AcuMeds platform is the result of iterative design, implementation, and testing across multiple interconnected modules. During this work, I gained practical exposure to web application development, database design, role-based access control, payment workflow design, and lightweight recommendation system development.</p>
+<p>I also acknowledge the open-source ecosystem that made this project possible. Flask, SQLite, SQLAlchemy, Flask-Login, Bootstrap, and scikit-learn provided a reliable and flexible base for building a real-world application without excessive infrastructure overhead. The project documentation, testing scripts, and verification notes helped in shaping a consistent architecture across the customer, shopkeeper, admin, and delivery portals.</p>
+<p>This report summarizes the design rationale, implementation approach, testing outcomes, constraints, and future enhancement possibilities of the system. It is intended to serve as a complete academic record of the work completed on the AcuMeds project.</p>
+<div class="page-break"></div>
+
+<h2 id="executive-summary">Executive Summary</h2>
+<p>AcuMeds is a multi-portal pharmacy management system built to support medicine browsing, vendor verification, order processing, delivery tracking, and symptom-based recommendations in one shared platform. The system connects customer, shopkeeper, admin, and delivery workflows through a common database so that every role sees the same operational state.</p>
+<p>The project demonstrates a practical Flask-based implementation for an online pharmacy domain. Its main contribution is the combination of role-based access control, verified vendor listing, and a lightweight recommendation engine that helps users move from symptom descriptions to relevant medicines. The current version is suitable for academic presentation and can be extended further with stronger analytics, production-grade storage, and richer clinical safety checks.</p>
+<div class="page-break"></div>
+
+<h2 id="abstract">Abstract</h2>
+<p>AcuMeds is an integrated online pharmacy management system designed to support medicine browsing, stock discovery, order placement, shopkeeper onboarding, delivery coordination, and symptom-based medicine recommendations through a unified web platform. The project is organized as multiple Flask applications that operate on a shared pharmacy database, allowing customer, shopkeeper, admin, and delivery workflows to remain synchronized while still being logically separated by role.</p>
+<p>The main objective of the system is to reduce the friction involved in purchasing medicines and managing medical-store operations through a responsive and scalable web interface. Customers can search medicines, add items to a cart, place orders, upload prescriptions, track delivery progress, and receive recommendations based on symptoms. Shopkeepers can register their business, manage medicine inventory, and receive customer orders after administrative verification. Admin users can supervise vendors, manage products, oversee orders, and maintain platform trust. Delivery users can update order movement and confirm delivery through structured workflow states. The platform also includes payment support, manual UPI fallback, notification handling, language selection, and a lightweight AI-assisted recommendation layer.</p>
+<p>From a technical perspective, the project uses Flask for the application layer, SQLAlchemy for data modeling, SQLite for persistence, Bootstrap and custom CSS for the interface, and scikit-learn for text-based recommendation support. The system adopts a modular blueprint architecture, making it easier to maintain, test, and extend. A shared database architecture ensures that all portals operate on one source of truth, which is especially important for shopkeeper verification and order visibility.</p>
+<p>The report documents the background, design choices, feasibility, objectives, development methodology, implementation details, observed results, challenges, and future improvement opportunities. Overall, AcuMeds demonstrates how a small but well-designed software stack can be used to deliver a practical digital healthcare commerce solution.</p>
+<div class="page-break"></div>
+
+<h2 id="index">Index</h2>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th style="text-align: right;">Page No.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Declaration</td>
+<td style="text-align: right;">ii</td>
+</tr>
+<tr>
+<td>Certificate</td>
+<td style="text-align: right;">iii</td>
+</tr>
+<tr>
+<td>Acknowledgement</td>
+<td style="text-align: right;">iv</td>
+</tr>
+<tr>
+<td>Executive Summary</td>
+<td style="text-align: right;">v</td>
+</tr>
+<tr>
+<td>Abstract</td>
+<td style="text-align: right;">vi</td>
+</tr>
+<tr>
+<td>List of Tables</td>
+<td style="text-align: right;">viii</td>
+</tr>
+<tr>
+<td>List of Figures</td>
+<td style="text-align: right;">ix</td>
+</tr>
+<tr>
+<td>Introduction</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>Literature Survey</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td>Feasibility Study</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td>Research and Objectives</td>
+<td style="text-align: right;">13</td>
+</tr>
+<tr>
+<td>Methodology, Tools and System Design</td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr>
+<td>Implementation and Results</td>
+<td style="text-align: right;">24</td>
+</tr>
+<tr>
+<td>Challenges and Limitations</td>
+<td style="text-align: right;">33</td>
+</tr>
+<tr>
+<td>Conclusion and Future Work</td>
+<td style="text-align: right;">37</td>
+</tr>
+<tr>
+<td>References</td>
+<td style="text-align: right;">40</td>
+</tr>
+</tbody>
+</table>
+<p>The page numbers above are based on the current draft layout and standard report formatting.</p>
+<div class="page-break"></div>
+
+<h2 id="list-of-tables">List of Tables</h2>
+<ol>
+<li>Table 3.6 - Feasibility Summary Table</li>
+<li>Table 5.10 - Design Summary Table</li>
+<li>Table 6.11 - Functional Summary Table</li>
+</ol>
+<div class="page-break"></div>
+
+<h2 id="list-of-figures">List of Figures</h2>
+<p>No figures are included in the current draft.</p>
+<div class="page-break"></div>
+
+<hr />
+<h2 id="1-introduction">1. INTRODUCTION</h2>
+<h3 id="11-background">1.1 Background</h3>
+<p>Access to medicines is a basic requirement in modern healthcare, yet the process of selecting, verifying, ordering, and delivering medicines is still often fragmented. Many users rely on physical stores, manual consultation, or disconnected e-commerce systems that only address a part of the workflow. At the same time, medical stores and vendors need reliable tools for inventory management, order processing, verification, and customer communication. The AcuMeds project was developed to address these operational gaps by combining a customer-facing pharmacy portal with supporting shopkeeper, admin, and delivery applications.</p>
+<p>The project reflects a realistic digital pharmacy environment where medicines are not simply listed as products. Instead, they are part of an ecosystem involving stock availability, prescription sensitivity, vendor trust, delivery execution, payment configuration, and user support. This is why a simple shopping-cart model is not sufficient. A useful pharmacy platform must support operational validation, access control, and feedback-based assistance while maintaining a straightforward user interface.</p>
+<p>AcuMeds extends the normal e-commerce model by including a recommendation engine that can interpret symptom descriptions and suggest likely medicine options. Although the current recommendation logic is lightweight and not intended to replace medical advice, it helps users discover relevant products faster. This is particularly useful when users know how they feel but are unsure of the exact medicine name.</p>
+<h3 id="12-problem-statement">1.2 Problem Statement</h3>
+<p>The main problem addressed by the project is the lack of a unified, role-aware pharmacy platform that can support the full lifecycle of medicine discovery and fulfillment. Existing solutions often focus on a single role, such as a customer shopping website or a store inventory system, but they fail to combine customer ordering, shop verification, delivery management, and admin supervision into one coordinated architecture.</p>
+<p>The second part of the problem concerns recommendation quality. Users often describe symptoms in plain language such as fever, cold, headache, weakness, stomach pain, or allergy-related discomfort. A useful pharmacy system should interpret those descriptions and return a short list of possible medicines or categories, while still being transparent about the limits of the suggestion engine. AcuMeds addresses this with a symptom-medicine mapping supported by a lightweight machine-learning layer.</p>
+<h3 id="13-project-scope">1.3 Project Scope</h3>
+<p>The project scope includes the following functional areas:</p>
+<ul>
+<li>customer registration and authentication</li>
+<li>medicine browsing and search</li>
+<li>shopping cart and order checkout</li>
+<li>prescription upload and storage</li>
+<li>AI-assisted symptom recommendation</li>
+<li>shopkeeper registration and verification</li>
+<li>inventory and order management for vendors</li>
+<li>admin dashboard operations</li>
+<li>delivery status handling and OTP-based confirmation support</li>
+<li>payment method selection with Paytm or manual UPI fallback</li>
+<li>notification and localization support</li>
+</ul>
+<p>The project is intentionally designed as a practical academic system rather than a national-scale healthcare platform. It prioritizes clarity, modularity, and maintainability over large-scale distributed complexity. This makes it suitable for a semester project, final-year project, or demonstration platform that can be extended in later stages.</p>
+<h3 id="14-significance-of-the-study">1.4 Significance of the Study</h3>
+<p>This project is significant because it brings together several important software engineering concerns in a single domain. First, it demonstrates how role-based systems can be built using a shared relational database without sacrificing modular separation. Second, it shows how a lightweight recommendation engine can be used to improve product discovery in a healthcare context. Third, it highlights the importance of administrative trust and vendor verification in online medicine commerce.</p>
+<p>The system is also relevant from an educational perspective. It provides a clear example of how front-end templates, back-end routes, database models, and service modules can be combined into a coherent architecture. Students can study this project to understand how authentication, inventory control, delivery flow, and recommendation logic can be connected in one application stack.</p>
+<h3 id="15-organization-of-the-report">1.5 Organization of the Report</h3>
+<p>The remainder of this report is organized into nine major sections. The literature survey examines the broader context of pharmacy systems and recommendation approaches. The feasibility study evaluates the project from technical, operational, economic, and schedule perspectives. The research and objectives section defines the goals and expected outcomes. The methodology, tools and system design section explains the architecture, development process, modules, and technology stack. The implementation and results section describes the actual build, workflow execution, and observed outcomes. The challenges and limitations section identifies the constraints faced during the project. The conclusion and future work section summarizes the value of the system and outlines improvement possibilities. References are provided at the end for both the internal project documents and the external tools and libraries used in the implementation.</p>
+<hr />
+<div class="page-break"></div>
+
+<h2 id="2-literature-survey">2. LITERATURE SURVEY</h2>
+<h3 id="21-traditional-pharmacy-management-approaches">2.1 Traditional Pharmacy Management Approaches</h3>
+<p>Traditional pharmacy management is usually based on local retail procedures, paper records, isolated stock files, and manual customer interaction. In many small and medium shops, staff members track inventory using registers or basic spreadsheets. While these approaches can be sufficient for small stores, they do not scale well when multiple roles, multiple branches, or delivery workflows are introduced. Manual processes also make it harder to monitor stock levels in real time, verify shop legitimacy, or coordinate order fulfillment with a broader platform.</p>
+<p>A conventional store system generally provides product listing and billing, but it does not always support user accounts, order history, delivery tracking, or online search. As a result, customers may still need to call or visit the store for information. In the context of medicine purchase, this lack of digital visibility can create delays and inconvenience, especially when users are looking for common over-the-counter medicines quickly.</p>
+<h3 id="22-e-pharmacy-platforms">2.2 E-Pharmacy Platforms</h3>
+<p>E-pharmacy platforms have significantly changed how medicines are discovered and ordered. A typical e-pharmacy lets users search products, compare prices, and place orders from home. This model is convenient, but many commercial systems focus mainly on the customer storefront. They may not deeply address vendor verification, internal trust metrics, or transparent multi-role coordination.</p>
+<p>Another common limitation is that generic e-commerce systems do not always understand medicine-specific workflows. In healthcare-related commerce, some items may require a prescription, some may need verification, and some may require special handling during delivery. A generic shopping system may not be sufficient unless it is adapted with healthcare-specific logic. AcuMeds was developed with these requirements in mind so that medicine browsing and fulfillment remain tied to operational checks rather than simple product transactions.</p>
+<h3 id="23-recommender-systems-in-healthcare">2.3 Recommender Systems in Healthcare</h3>
+<p>Recommendation systems are widely used in commerce, entertainment, and content discovery. In healthcare-related systems, they can help users identify relevant products, articles, or services based on symptoms or descriptions. The challenge is that healthcare language is often ambiguous. A user may type "fever and body pain" or "I feel weak and dizzy" rather than naming a medicine. A recommendation engine must therefore work with common language rather than only structured input.</p>
+<p>Many healthcare recommenders use classification, keyword matching, or hybrid approaches that mix rules with machine learning. Simple rule-based systems are easier to explain and maintain, while machine-learning methods can improve flexibility when the user uses different phrasings. AcuMeds adopts a lightweight hybrid style. The project keeps a curated symptom-medicine mapping for clarity, but it also uses text classification techniques to improve recognition of common symptom phrases and aliases.</p>
+<h3 id="24-role-based-web-applications">2.4 Role-Based Web Applications</h3>
+<p>Modern enterprise and e-commerce applications often separate users by role. For example, customers browse and order, vendors manage inventory, admins supervise the platform, and delivery agents handle shipping. Role-based systems are important because each group has a different responsibility and different permission level. If role boundaries are not enforced carefully, the platform can become confusing or insecure.</p>
+<p>In the pharmacy domain, role separation is even more important because not every participant should see or modify the same data. Shopkeepers need access to their inventory and customer orders, but they should not have unrestricted access to other vendors' data. Admins need oversight and verification abilities, but they should also be able to approve or reject new vendors. Delivery users require logistics-specific views, not product management pages. AcuMeds therefore builds role-specific portals on top of a shared data source, combining separation of interface with consistency of storage.</p>
+<h3 id="25-gap-analysis">2.5 Gap Analysis</h3>
+<p>The literature and common practice reveal several gaps that AcuMeds attempts to close.</p>
+<p>First, many systems are either customer-centric or vendor-centric, but not both. This creates fragmentation in inventory and order management. Second, recommendation engines are often too generic and do not reflect the wording that users actually type. Third, some platforms lack a clear verification stage for vendors, which can weaken trust. Fourth, delivery workflows are frequently handled as an afterthought, rather than as a first-class module. Fifth, payment integration is often configured in a way that confuses users when gateway credentials are missing.</p>
+<p>AcuMeds addresses these gaps by combining customer, shopkeeper, admin, and delivery capabilities in one platform, sharing one database, and adding simple but useful symptom-based guidance. The result is not a full hospital system and not a generic marketplace; it is a specialized medicine commerce platform with enough structure to be realistic and enough simplicity to remain maintainable.</p>
+<hr />
+<div class="page-break"></div>
+
+<h2 id="3-feasibility-study">3. FEASIBILITY STUDY</h2>
+<h3 id="31-technical-feasibility">3.1 Technical Feasibility</h3>
+<p>The project is technically feasible because it uses a stack that is well suited to small and medium web applications. Flask provides a lightweight application framework, SQLAlchemy simplifies database interaction, SQLite removes the need for a separate database server during development, and Bootstrap makes responsive interface design faster. Python-based development also makes it practical to integrate text processing, payment helpers, and utility scripts without switching to multiple unrelated languages.</p>
+<p>The system structure is modular. Each portal can be executed as a separate application while still using a common database. This reduces coupling between modules and allows each role area to be tested independently. The recommendation layer uses manageable machine-learning techniques that do not require expensive hardware. As a result, the project can run on a normal development laptop and does not depend on GPU acceleration or complex cloud infrastructure.</p>
+<h3 id="32-operational-feasibility">3.2 Operational Feasibility</h3>
+<p>Operational feasibility refers to whether the proposed system can realistically be used by the intended participants. The answer is yes, because the interfaces are role-specific and the workflows follow familiar e-commerce patterns. A customer can search, cart, and checkout. A shopkeeper can add and manage medicines. An admin can verify shops and manage orders. A delivery agent can update delivery stages. These actions align with the responsibilities of each user group, so the learning curve is manageable.</p>
+<p>The presence of a shared database also improves operational feasibility because new registrations, verified shopkeeper changes, and order updates can be seen across the portals without manual export or synchronization. This is particularly important for the verification workflow, where the shopkeeper system and admin system must agree on the same data.</p>
+<h3 id="33-economic-feasibility">3.3 Economic Feasibility</h3>
+<p>The project is economically feasible because it relies on open-source frameworks and tools. Flask, SQLite, Bootstrap, SQLAlchemy, scikit-learn, and Werkzeug are freely available. The development environment can be maintained without expensive licenses. Hosting and scaling costs are also low at the prototype stage because the entire platform can run on standard local infrastructure.</p>
+<p>Optional external services such as Paytm, Twilio, or a hosted database can be added later, but they are not required for the core system to function. This makes the project suitable for academic development, proof-of-concept demonstration, and phased deployment.</p>
+<h3 id="34-schedule-feasibility">3.4 Schedule Feasibility</h3>
+<p>The system is schedule-feasible because the architecture is modular and can be developed incrementally. Core authentication, database models, and inventory modules can be completed first. Then cart, order, and recommendation features can be added. Finally, vendor verification, payment integration, delivery coordination, and notification handling can be layered on top. This staged development approach reduces risk and keeps the project controllable within a semester or project timeline.</p>
+<h3 id="35-legal-and-ethical-feasibility">3.5 Legal and Ethical Feasibility</h3>
+<p>Pharmacy systems need careful attention to legal and ethical issues. AcuMeds is feasible as a demonstration platform because it does not claim to replace professional medical advice. The recommendation module is transparent about its limitations and is intended to guide product discovery rather than diagnose illness. Sensitive operations such as prescription uploads, payment handling, and delivery information are organized as application features with standard access control.</p>
+<p>The project also emphasizes vendor verification. This is ethically important because users need confidence that medicines are being listed by legitimate and approved sellers. By separating pending and verified shopkeepers, the platform reinforces trust and reduces the risk of unvetted product listing.</p>
+<h3 id="36-feasibility-summary-table">3.6 Feasibility Summary Table</h3>
+<table>
+<thead>
+<tr>
+<th>Feasibility Type</th>
+<th>Assessment</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Technical</td>
+<td>High</td>
+<td>Flask, SQLite, and scikit-learn are suitable for the scope</td>
+</tr>
+<tr>
+<td>Operational</td>
+<td>High</td>
+<td>Each role has a clear and familiar workflow</td>
+</tr>
+<tr>
+<td>Economic</td>
+<td>High</td>
+<td>Open-source stack keeps cost low</td>
+</tr>
+<tr>
+<td>Schedule</td>
+<td>Medium to High</td>
+<td>Modular design supports phased implementation</td>
+</tr>
+<tr>
+<td>Legal and Ethical</td>
+<td>Medium to High</td>
+<td>Suitable as a support system, not a medical authority</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<div class="page-break"></div>
+
+<h2 id="4-research-and-objectives">4. RESEARCH AND OBJECTIVES</h2>
+<h3 id="41-research-focus">4.1 Research Focus</h3>
+<p>The project was guided by a small set of practical research questions. How can a pharmacy platform help users locate medicines more quickly when they only know symptoms? How can multiple roles operate on one dataset without duplicating records? How can the system preserve trust when new vendors are added? How can delivery and payment choices be made visible without overwhelming the user interface?</p>
+<p>These questions are not theoretical only. They directly correspond to the choices made in the implementation. The recommendation engine, shared database, shopkeeper verification process, and delivery workflow each represent a response to one or more of these questions.</p>
+<h3 id="42-primary-objectives">4.2 Primary Objectives</h3>
+<p>The main objective of AcuMeds is to provide a reliable, role-aware, and user-friendly pharmacy commerce system. More specifically, the project aims to:</p>
+<ul>
+<li>enable customers to search and order medicines online</li>
+<li>support symptom-based medicine discovery</li>
+<li>allow vendors to register, get verified, and manage stock</li>
+<li>let administrators supervise the platform through a central dashboard</li>
+<li>support delivery processing and order state updates</li>
+<li>maintain a shared source of truth across all portals</li>
+<li>keep the interface responsive and easy to understand</li>
+</ul>
+<h3 id="43-functional-objectives">4.3 Functional Objectives</h3>
+<p>The functional objectives of the system include account creation, secure login, medicine browsing, cart management, order checkout, prescription upload, order history, shopkeeper verification, medicine CRUD operations, delivery status updates, and notifications. In addition, the system should handle payment-method visibility correctly based on configuration and should gracefully fall back when gateway credentials are not available.</p>
+<h3 id="44-non-functional-objectives">4.4 Non-Functional Objectives</h3>
+<p>The non-functional objectives include responsiveness, maintainability, modularity, data consistency, and reasonable security. The platform should run on standard hardware, keep code organized across blueprints and models, and support future extension without major redesign. User experience also matters, so the interface should be straightforward, mobile-friendly, and consistent across portals.</p>
+<h3 id="45-expected-outcomes">4.5 Expected Outcomes</h3>
+<p>By the end of the project, the expected outcome is a working digital pharmacy environment with these characteristics:</p>
+<ul>
+<li>customer requests are captured through a modern web interface</li>
+<li>vendors can be validated before their medicines are shown publicly</li>
+<li>medicine recommendations help users move from symptom descriptions to product choices</li>
+<li>order and delivery workflows are trackable through status stages</li>
+<li>the platform can be demonstrated as a complete academic system rather than a set of unrelated pages</li>
+</ul>
+<hr />
+<div class="page-break"></div>
+
+<h2 id="5-methodology-tools-and-system-design">5. METHODOLOGY, TOOLS AND SYSTEM DESIGN</h2>
+<h3 id="51-development-methodology">5.1 Development Methodology</h3>
+<p>The project followed an iterative and modular development approach. The first step was requirement identification, where the key user roles and workflows were mapped out. After that, the system was divided into small functional parts: authentication, catalog, cart, checkout, recommendation, admin operations, vendor onboarding, and delivery handling. Each module could then be implemented and tested independently before being integrated with the shared database.</p>
+<p>This style is close to an agile workflow, even if the project was not managed with formal sprint documentation. The advantage of this method is that it allows frequent validation. For example, the database schema can be checked before the UI is finalized, and the recommendation engine can be tested against sample symptom phrases before it is connected to the final pages.</p>
+<h3 id="52-architectural-style">5.2 Architectural Style</h3>
+<p>AcuMeds uses a layered web architecture. At the top layer is the user interface, built using HTML templates, Bootstrap, and custom CSS. The middle layer is the Flask application logic, which is organized into blueprints and helper modules. The persistence layer is a shared SQLite database. Supporting services include payment helpers, notification helpers, localization utilities, file upload management, and the recommendation engine.</p>
+<p>The project also follows a multi-portal model. Instead of forcing all users through one interface with many hidden states, each role gets its own application area. The customer portal handles browsing and ordering. The shopkeeper portal handles vendor operations. The admin portal handles supervision and verification. The delivery portal handles logistics. All of them talk to the same database, which prevents duplication of records and keeps the workflow synchronized.</p>
+<h3 id="53-technologies-and-tools">5.3 Technologies and Tools</h3>
+<p>The core tools used in the project are:</p>
+<ul>
+<li>Python for back-end development and scripting</li>
+<li>Flask for application structure and routing</li>
+<li>SQLAlchemy for ORM-based database access</li>
+<li>SQLite for local relational storage</li>
+<li>Flask-Login for session management and authentication</li>
+<li>Bootstrap for responsive UI layout</li>
+<li>HTML, CSS, and JavaScript for front-end interaction</li>
+<li>scikit-learn for lightweight text classification in the recommendation engine</li>
+<li>Werkzeug for password hashing and request utilities</li>
+<li>ReportLab for PDF generation support</li>
+<li>Paytm helper utilities for payment initiation and verification</li>
+<li>Twilio-ready SMS logic for delivery OTP support</li>
+</ul>
+<h3 id="54-system-design-principles">5.4 System Design Principles</h3>
+<p>The system design was guided by a few practical principles. First, each role should see only what it needs. Second, the database must remain shared so that all workflows stay synchronized. Third, each major feature must remain independent enough to be tested without the entire system running at once. Fourth, the system should degrade gracefully if optional services such as payment gateways or external AI services are unavailable.</p>
+<p>These principles led to a clean split between configuration, database models, routes, service helpers, and templates. This separation makes the code easier to understand, modify, and extend.</p>
+<h3 id="55-high-level-workflow">5.5 High-Level Workflow</h3>
+<p>At a high level, the platform operates in the following way:</p>
+<ol>
+<li>A user visits the customer portal and either searches medicines or enters symptoms.</li>
+<li>The system returns product cards or recommendation results.</li>
+<li>The user adds medicines to the cart and proceeds to checkout.</li>
+<li>The order is stored in the shared database.</li>
+<li>If the medicine belongs to a verified shopkeeper, the order can be linked into the vendor workflow.</li>
+<li>The admin portal can review vendor status and order details.</li>
+<li>The delivery portal can update movement and confirmation states.</li>
+<li>Notifications and history pages keep the customer informed.</li>
+</ol>
+<p>This workflow is intentionally simple at the user level but comprehensive at the system level.</p>
+<h3 id="56-database-design">5.6 Database Design</h3>
+<p>The database design is one of the most important parts of the system because it keeps all portals synchronized. AcuMeds uses a shared relational database named pharmacy.db. The same database is used by the customer application, the shopkeeper application, the admin application, and the delivery application. This shared source of truth is especially important for verification and order tracking because a change made in one portal must be visible in the others without delay or manual export.</p>
+<p>The schema includes tables for users, shopkeepers, medicines, cart items, orders, order items, delivery agents, deliveries, delivery status updates, medicine ratings, prescriptions, addresses, subscriptions, recommendations, and notifications. Each table has a specific responsibility. User records hold account identity and role information. Shopkeeper records hold business verification details. Medicine records store catalog and stock data. Cart and order tables capture commerce activity. Delivery tables capture logistics. Recommendation tables record symptom analysis history.</p>
+<p>The relationships are designed to mirror real operational dependencies. A user can have multiple orders, cart items, prescriptions, recommendations, ratings, notifications, addresses, and subscriptions. A shopkeeper can own many medicines and can be associated with orders and cart items. A medicine can appear in cart items, order items, and ratings. An order can have multiple order items and one delivery record. A delivery can have many status updates and one assigned delivery agent. This relational structure makes the data model expressive without being unnecessarily complex.</p>
+<p>Indexes are created on frequently queried columns such as user email, medicine category, cart user, order user, delivery status, notification read state, and rating references. These indexes improve lookup speed and make the application more responsive during common operations like login, browsing, order history retrieval, and verification filtering.</p>
+<h3 id="57-security-design">5.7 Security Design</h3>
+<p>Security is implemented at multiple levels. Passwords are hashed before being stored, which means the application never keeps raw passwords in the database. Session-based login is managed through Flask-Login, allowing the system to remember authenticated users securely and to protect routes that require login.</p>
+<p>Role checks are used to separate what each user can do. For example, the admin role controls supervision functions, the shopkeeper role controls medicine inventory and vendor-specific actions, and the delivery role controls logistics pages. The application also uses an active/inactive user flag so that disabled accounts can be blocked from signing in even if the password is correct.</p>
+<p>Upload security is handled through file-extension filtering and secure filename creation for medicine images and prescription documents. This reduces the risk of accidental upload of unsupported file types. Payment-related settings are guarded by configuration values so that buttons and workflows only appear when gateway credentials are present. This prevents user confusion and reduces the chance of failed transaction attempts.</p>
+<p>The design also supports safer operations by keeping optional features optional. If an external service such as Paytm, Twilio, or OpenAI is not configured, the application falls back to local behavior instead of crashing. This defensive design is important in a real-world deployment where external services may be unavailable or temporarily disabled.</p>
+<h3 id="58-ai-recommendation-design">5.8 AI Recommendation Design</h3>
+<p>The recommendation subsystem was designed to be understandable and practical rather than opaque. The project does not attempt to replace a clinician. Instead, it helps users map symptom descriptions to possible medicines that are already present in the inventory or supported by the symptom map. The recommendation workflow combines curated symptom definitions with a lightweight text classification approach.</p>
+<p>The symptom engine uses a curated symptom-medicine mapping so that the output is explainable. For each symptom such as cold, fever, cough, headache, allergy, stomach pain, heartburn, weakness, or fatigue, the system holds a list of suggested medicine names, categories, and reason strings. This mapping makes the results readable to users because every recommendation can be linked to a plain-language explanation.</p>
+<p>To improve recognition of user wording, the system also builds synthetic training phrases from canonical symptom names and aliases. The text classifier uses TF-IDF features with both word n-grams and character n-grams, then fits a small logistic regression model for symptom classification. This allows the recommender to handle short phrases, common wording variations, and minor spelling differences more robustly than simple substring matching alone.</p>
+<p>The recommendation process also includes several safeguards. Very vague phrases such as "not feeling well" are treated as insufficiently specific and do not automatically trigger a recommendation list. The system therefore avoids overconfident suggestions when the user has not described a concrete symptom. The final output is limited to a small number of top matches so the page remains readable and focused.</p>
+<p>Confidence scoring is derived from the model output and stored with the recommendation record. This gives the user a sense of how strong the match is without pretending to provide medical certainty. The score should be interpreted as a guide for product discovery, not as a diagnosis.</p>
+<h3 id="59-deployment-topology">5.9 Deployment Topology</h3>
+<p>The deployment model is intentionally simple. The start_all.ps1 script launches the four applications on different local ports: customer on 5000, shopkeeper on 5001, admin on 5002, and delivery on 5003. All four applications use the same database file. This is a practical arrangement for development and demonstration because it keeps the portals separated while still allowing one environment to show the whole workflow.</p>
+<p>The startup script also opens browser tabs after the applications are launched, which makes the system easy to demonstrate. If a port is already in use, the script skips that app instead of failing the entire startup sequence. This small but useful behavior makes the environment more reliable during repeated testing.</p>
+<h3 id="510-design-summary">5.10 Design Summary</h3>
+<table>
+<thead>
+<tr>
+<th>Design Area</th>
+<th>Key Decision</th>
+<th>Benefit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Architecture</td>
+<td>Multiple Flask apps with shared database</td>
+<td>Clear role separation with synchronized data</td>
+</tr>
+<tr>
+<td>Data Storage</td>
+<td>SQLite shared across portals</td>
+<td>Low setup cost and simple deployment</td>
+</tr>
+<tr>
+<td>UI Layer</td>
+<td>Bootstrap plus custom templates</td>
+<td>Responsive and easy to navigate</td>
+</tr>
+<tr>
+<td>Security</td>
+<td>Password hashing and role checks</td>
+<td>Better access control and account safety</td>
+</tr>
+<tr>
+<td>AI Layer</td>
+<td>Symptom mapping plus ML text classification</td>
+<td>Explainable and flexible recommendations</td>
+</tr>
+<tr>
+<td>Operations</td>
+<td>Verification, delivery, and payment workflows</td>
+<td>Closer match to real pharmacy processes</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<div class="page-break"></div>
+
+<h2 id="6-implementation-and-results">6. IMPLEMENTATION AND RESULTS</h2>
+<h3 id="61-implementation-environment">6.1 Implementation Environment</h3>
+<p>The implementation was carried out in a Windows development environment with a Python virtual environment. The project structure separates each application into its own folder while preserving shared assets and shared persistence. This allowed each portal to be started independently during development and then launched together for end-to-end testing.</p>
+<p>The customer-facing application contains the main medicine catalog, recommendation pages, cart, order, profile, and general browsing views. The shopkeeper application focuses on vendor registration, inventory management, and order handling. The admin application handles supervision, approvals, and platform control. The delivery application manages logistics and delivery status actions. Even though these applications are separated, they are functionally connected through the shared database and through consistent model definitions.</p>
+<h3 id="62-authentication-and-profile-management">6.2 Authentication and Profile Management</h3>
+<p>The authentication system supports registration, login, logout, and profile updates. User records store the username, email, hashed password, full name, phone, address, age, gender, role, and active state. During registration, the system validates that required fields are present, checks for duplicate usernames and emails, and creates the user with the default customer role unless another flow assigns a different role.</p>
+<p>Profile management allows users to update personal details and contact information. The implementation includes validation for phone numbers so that invalid characters and very short numbers are rejected. This prevents obviously malformed contact data from entering the system. The profile page also serves as a basic account-management center for the customer portal.</p>
+<h3 id="63-medicine-catalog-search-and-inventory-views">6.3 Medicine Catalog, Search, and Inventory Views</h3>
+<p>The medicine catalog is one of the most visible modules in the system. Customers can browse medicines that are available through verified shopkeepers, search by name, and filter by category. The list page only exposes items from approved vendors, which prevents unverified or unauthorized product listings from appearing to the public.</p>
+<p>The medicine detail page shows the medicine name, category, description, price, stock quantity, usage instructions, side effects, and related shopkeeper information. The page can also display gallery images, ratings, and recent reviews where available. By tying the product page to multiple data sources, the interface gives the user a more useful and trustworthy view than a plain static listing would.</p>
+<p>The catalog implementation also handles deduplication. When the same medicine appears in multiple vendor records or when platform defaults overlap with vendor items, the system chooses the best representation rather than displaying duplicate cards. This improves the browsing experience and avoids confusion.</p>
+<h3 id="64-cart-and-checkout-workflow">6.4 Cart and Checkout Workflow</h3>
+<p>The cart module allows the customer to add a medicine from a specific verified shopkeeper, update quantities, and remove items. The cart view calculates totals dynamically using the medicine price and quantity stored in each cart line. During add-to-cart operations, the system checks whether the selected shopkeeper is valid and whether there is enough stock to satisfy the requested quantity.</p>
+<p>This inventory check is important because medicine availability can vary between vendors. A medicine may exist in the database but not be available from a chosen shopkeeper or may be out of stock at that moment. The implementation therefore validates both the medicine identity and the vendor-specific stock before adding the item to the cart.</p>
+<p>Checkout creates an order from the cart contents and stores the transaction in the shared database. The system supports more than one payment path. If Paytm credentials are configured, the payment gateway path can be enabled. If not, the application can still present manual UPI or cash-on-delivery style flows depending on the configuration. This behavior is driven by the configuration flags so that users are not shown payment choices that the backend cannot actually process.</p>
+<h3 id="65-shopkeeper-verification-and-vendor-management">6.5 Shopkeeper Verification and Vendor Management</h3>
+<p>One of the most important implementation results is the unified shopkeeper verification workflow. The shopkeeper system and admin system use the same pharmacy.db file, so a new vendor registration appears immediately in the admin panel. This architecture resolves the classic problem of isolated databases causing verification records to disappear from the approval interface.</p>
+<p>The shopkeeper model stores business identity fields such as shop name, license number, contact details, city, and verification status. Verified shopkeepers can manage medicines and receive orders, while unverified shopkeepers remain in the pending state. This gatekeeping mechanism improves platform trust and also creates a clear approval workflow for administrators.</p>
+<p>The verification implementation summary confirms that the shared database model is the correct approach for this project. It avoids data duplication and ensures that the admin panel, shopkeeper portal, and customer portal all look at the same truth. In practical terms, this means once a shopkeeper is approved, the approval is visible in every relevant part of the system without manual syncing.</p>
+<h3 id="66-delivery-workflow">6.6 Delivery Workflow</h3>
+<p>The delivery module extends the platform beyond order placement by tracking logistics. Orders can be assigned to delivery agents, and the delivery object stores status progression, timestamps, delivery fee, cash collection amount, location points, and OTP verification data. This is a realistic implementation because actual medicine delivery often requires confirmation steps and careful status tracking.</p>
+<p>The delivery flow is designed to support statuses such as assigned, picked up, out for delivery, and delivered. Status updates are stored separately, which allows the platform to keep a timeline rather than a single current value. That makes the order history more transparent and helps customer support staff or administrators understand what happened to a parcel over time.</p>
+<p>The project also includes an OTP-based confirmation path in the codebase. The OTP can be sent through SMS when the provider is configured; otherwise, the system can operate in a console or fallback mode during development. This is a sensible compromise because live SMS integration is often expensive or environment-dependent, while the logical workflow can still be tested locally.</p>
+<h3 id="67-ai-recommendation-module">6.7 AI Recommendation Module</h3>
+<p>The AI recommendation feature is a major differentiator for the platform. When a user enters symptoms, the system extracts likely symptom categories, classifies the text, and produces a list of medicines with reasons. The recommendation output includes the matched symptoms, a confidence score, and a short list of suitable items. The final response is stored in the recommendation history table so that users can revisit previous suggestions.</p>
+<p>The system is deliberately designed to avoid overpromising. If the text is too vague, the recommender can return an empty or low-confidence result rather than manufacturing a suggestion. This is better from both usability and safety perspectives. The output remains explainable because each medicine is tied to the symptom that triggered it and to a reason string such as fever relief, pain relief, or allergy relief.</p>
+<p>From an implementation standpoint, the recommendation module demonstrates an effective hybrid design. The curated mapping gives domain structure, while the text classifier adds flexibility. This approach is easier to maintain than a large opaque model and far easier to explain in a student project report.</p>
+<h3 id="68-payment-notification-and-localization-support">6.8 Payment, Notification, and Localization Support</h3>
+<p>The project includes payment configuration logic that respects whether Paytm credentials are available. This avoids a common bug in which users see a payment option that the backend cannot complete. The codebase also supports manual UPI details for situations where a gateway is not enabled. This layered design improves resilience during development and helps with demonstrations in limited environments.</p>
+<p>Notification support is another useful part of the implementation. The system can create in-app notifications and mark them as read when viewed. This improves the user experience because important events such as order updates or verification outcomes can be surfaced in the interface rather than hidden in logs. Localization support is also present so that the platform can display language-related labels and store a current language selection.</p>
+<h3 id="69-observed-results">6.9 Observed Results</h3>
+<p>The practical results of the implementation are visible at several levels. First, the four applications can be launched together through the startup script, which demonstrates that the multi-portal architecture is operational. Second, the shared database model ensures that a shopkeeper registration is not isolated from the admin panel. Third, the customer-facing portal can browse verified medicines only, which improves trust and keeps the public catalog clean. Fourth, the recommendation engine can translate plain symptom descriptions into a useful shortlist of medicine options.</p>
+<p>The workflow documentation shows that the verification path behaves as intended: a shopkeeper registers, remains pending, is reviewed by the admin, and only then receives full access. The delivery and notification features also demonstrate that the project is not limited to product listing; it actually covers the movement of an order after it is placed. The payment configuration logic and the manual fallback path are equally important because they ensure the system is usable even when gateway credentials are not configured.</p>
+<h3 id="610-testing-results-and-demonstration-outcomes">6.10 Testing Results and Demonstration Outcomes</h3>
+<p>The testing and verification notes indicate that the system was exercised through a series of workflow checks. These include shopkeeper registration and pending-status verification, admin approval visibility, customer browsing through verified inventory, and delivery-management behavior. The results show that the architecture is consistent across portals and that the shared database prevents the kind of data mismatch that would otherwise break the approval workflow.</p>
+<p>The overall demonstration outcome is that AcuMeds behaves like a coherent pharmacy platform rather than a set of unrelated pages. Users can move from symptom input to recommendation, from product discovery to checkout, from order creation to delivery tracking, and from shop registration to admin verification. This end-to-end continuity is one of the strongest results of the project.</p>
+<h3 id="611-functional-summary-table">6.11 Functional Summary Table</h3>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Main Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Authentication</td>
+<td>Secure login, registration, logout, and profile updates</td>
+</tr>
+<tr>
+<td>Catalog</td>
+<td>Verified medicine browsing, search, and detail view</td>
+</tr>
+<tr>
+<td>Cart</td>
+<td>Quantity control, stock checks, and total calculation</td>
+</tr>
+<tr>
+<td>Orders</td>
+<td>Checkout, history, delivery linkage, and payment support</td>
+</tr>
+<tr>
+<td>Recommendations</td>
+<td>Symptom-based medicine suggestions with confidence scoring</td>
+</tr>
+<tr>
+<td>Shopkeeper</td>
+<td>Vendor registration, verification, and inventory management</td>
+</tr>
+<tr>
+<td>Admin</td>
+<td>Central supervision, trust control, and order oversight</td>
+</tr>
+<tr>
+<td>Delivery</td>
+<td>Status tracking, OTP support, and delivery history</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<div class="page-break"></div>
+
+<h2 id="7-challenges-and-limitations">7. CHALLENGES AND LIMITATIONS</h2>
+<h3 id="71-multi-portal-synchronization">7.1 Multi-Portal Synchronization</h3>
+<p>The biggest architectural challenge in the project was keeping the four portals synchronized while still allowing them to run as separate applications. If each portal had used its own database, shopkeeper approvals and order updates would have become fragmented. The project solved this by using one shared database, but that also introduced the responsibility to keep schema changes and migrations consistent across the applications. In practice, this means that any future schema update must be carefully applied everywhere the database is used.</p>
+<h3 id="72-payment-and-external-service-configuration">7.2 Payment and External Service Configuration</h3>
+<p>Another challenge was payment configuration. A payment option should not be presented to the user unless the backend is actually able to support it. This seems small, but it is a common source of user confusion in web apps. The project therefore uses configuration-driven visibility for Paytm and manual UPI support. The limitation is that live payment behavior depends on environment variables and service credentials, so the exact checkout experience can vary between development and production.</p>
+<p>The same issue applies to external services such as SMS and AI APIs. The application can fall back to local behavior when those services are not available, which is good for resilience. However, fallback mode means the system cannot always show the full live experience during a demonstration. This trade-off is acceptable for an academic project, but it remains a practical limitation.</p>
+<h3 id="73-ai-recommendation-limitations">7.3 AI Recommendation Limitations</h3>
+<p>Although the recommendation system is useful, it has important limitations. It relies on a limited symptom vocabulary, synthetic training phrases, and a curated mapping rather than on clinical data or doctor-validated treatment logic. That means the recommender is good for product discovery but not good enough for diagnostic use. It does not evaluate dosage, contraindications, age-specific restrictions, or drug interactions.</p>
+<p>The model also depends on the quality of the input text. If the user enters a very vague phrase or a symptom outside the known list, the result may be empty or low-confidence. This is intentional because the system should avoid making unsafe or exaggerated claims. Still, the limitation means the recommendation page cannot be treated as a substitute for professional guidance.</p>
+<h3 id="74-data-and-scalability-limits">7.4 Data and Scalability Limits</h3>
+<p>SQLite is a very practical development database, but it is not the best choice for high-concurrency production workloads. As the number of users, shopkeepers, and delivery events grows, locking and performance behavior may become more visible. In addition, the current architecture is best suited to a small-to-medium deployment rather than a large distributed pharmacy network.</p>
+<p>The file-upload system also requires careful handling in production. Storing uploaded images and prescription documents in a shared directory is fine for local development, but a larger deployment would need stronger access control, storage hygiene, and backup planning.</p>
+<h3 id="75-operational-constraints">7.5 Operational Constraints</h3>
+<p>The project supports several operational flows, but not all of them are fully automated. For example, some administrative decisions still rely on human approval. This is by design because shopkeeper verification should remain a human-reviewed process. However, it also means the platform is not fully autonomous and still needs a responsible admin operator.</p>
+<p>Another operational limitation is that the system is designed primarily for one shared environment. In a real multi-branch deployment, each branch might need stronger separation, analytics, and reporting. Those features can be added, but they are outside the current project scope.</p>
+<h3 id="76-summary-of-limitations">7.6 Summary of Limitations</h3>
+<p>The main limitations of the current version are therefore:</p>
+<ul>
+<li>limited clinical intelligence in the recommendation module</li>
+<li>dependence on environment-based configuration for payment and external services</li>
+<li>SQLite-based scalability constraints for large deployments</li>
+<li>manual verification and operational control for vendors</li>
+<li>limited production-grade backup, monitoring, and analytics support</li>
+</ul>
+<p>These limitations do not reduce the educational or functional value of the project. Instead, they define the boundary between the current implementation and a later production-ready system.</p>
+<hr />
+<div class="page-break"></div>
+
+<h2 id="8-conclusion-and-future-work">8. CONCLUSION AND FUTURE WORK</h2>
+<h3 id="81-conclusion">8.1 Conclusion</h3>
+<p>AcuMeds demonstrates how a pharmacy-oriented web platform can combine customer convenience, vendor control, administrative supervision, delivery tracking, and symptom-based assistance into one coordinated system. The project is valuable because it does not solve only one part of the problem. It covers discovery, ordering, verification, fulfillment, and history in a single architecture.</p>
+<p>The shared database design was especially important because it allowed the customer, shopkeeper, admin, and delivery portals to remain consistent. The shopkeeper verification flow is a strong example of this design choice. By preventing unverified vendors from appearing in the public catalog, the platform increases trust and improves the quality of the shopping experience.</p>
+<p>The recommendation engine also contributes real value. Even though it is lightweight and intentionally conservative, it helps users move from symptom descriptions to possible medicines without forcing them to know the exact product name in advance. This makes the system more usable for common healthcare shopping scenarios.</p>
+<p>Overall, the project shows that a carefully designed Flask application can support meaningful multi-role workflows without requiring a heavy enterprise stack. The system is practical for academic use, demonstration, and incremental expansion.</p>
+<h3 id="82-future-work">8.2 Future Work</h3>
+<p>The current system can be improved in several ways. One major area is recommendation quality. The symptom model can be expanded with larger datasets, multilingual phrasing, better ranking logic, and interaction checks. A future version could combine rule-based filtering with a stronger language model or a medical knowledge base to improve relevance while still keeping safety controls.</p>
+<p>Another important area is medication safety. Future work could add drug-interaction warnings, allergy flags, prescription validation rules, and age-specific restrictions. These features would move the platform closer to a production-grade pharmacy assistant while maintaining the educational structure of the current project.</p>
+<p>On the operational side, the platform could benefit from stronger analytics dashboards, branch-level reporting, stock forecasting, and automatic reorder suggestions. Delivery management could be enhanced with route mapping, live GPS tracking, and richer status notifications. Customer communication could also be improved with email alerts, SMS messages, and push notifications.</p>
+<p>The architecture could further evolve by replacing SQLite with PostgreSQL or MySQL, adding centralized logging, and deploying the applications with Docker or a cloud orchestration platform. This would improve scalability and reliability for a real-world environment. Finally, a mobile application could be introduced so that customers and delivery agents can interact with the platform on smartphones more naturally.</p>
+<h3 id="83-future-enhancement-roadmap">8.3 Future Enhancement Roadmap</h3>
+<ol>
+<li>Add stronger medical intelligence for symptom interpretation.</li>
+<li>Introduce drug interaction and allergy validation.</li>
+<li>Add OCR-based prescription extraction for faster uploads.</li>
+<li>Expand vendor analytics, order analytics, and stock forecasting.</li>
+<li>Replace local SQLite storage with a production database.</li>
+<li>Add push notifications, email alerts, and richer SMS flows.</li>
+<li>Create a mobile client for customers and delivery agents.</li>
+<li>Deploy the system in containers with automated backups and monitoring.</li>
+</ol>
+<hr />
+<div class="page-break"></div>
+
+<h2 id="9-references">9. REFERENCES</h2>
+<ol>
+<li>AcuMeds project source code, including app/<strong>init</strong>.py, app/models.py, app/routes.py, app/ml_recommendation.py, config.py, and start_all.ps1.</li>
+<li>AcuMeds README.md and related project documentation in the pharmacy_system folder.</li>
+<li>AI_SYSTEM.md, describing the medicine recommendation architecture and workflow.</li>
+<li>VERIFICATION_IMPLEMENTATION_SUMMARY.md, documenting the shared database verification model.</li>
+<li>SHOPKEEPER_VERIFICATION_GUIDE.md, describing the vendor approval workflow.</li>
+<li>Flask Documentation. https://flask.palletsprojects.com/</li>
+<li>Flask-SQLAlchemy Documentation. https://flask-sqlalchemy.palletsprojects.com/</li>
+<li>Flask-Login Documentation. https://flask-login.readthedocs.io/</li>
+<li>SQLite Documentation. https://www.sqlite.org/docs.html</li>
+<li>scikit-learn User Guide. https://scikit-learn.org/stable/user_guide.html</li>
+<li>Werkzeug Documentation. https://werkzeug.palletsprojects.com/</li>
+<li>Bootstrap Documentation. https://getbootstrap.com/docs/</li>
+<li>ReportLab User Guide. https://www.reportlab.com/docs/reportlab-userguide.pdf</li>
+<li>Paytm Developer Documentation. https://developer.paytm.com/</li>
+<li>Twilio SMS Documentation. https://www.twilio.com/docs/sms</li>
+<li>OWASP Top Ten Web Application Security Risks. https://owasp.org/www-project-top-ten/</li>
+</ol>
+    </main>
+</div>
+</body>
+</html>

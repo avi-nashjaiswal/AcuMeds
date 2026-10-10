@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('title.login') }} - {{ t('app.name') }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h3 class="card-title text-center mb-4">
+                        <i class="fas fa-sign-in-alt"></i> {{ t('nav.login') }}
+                    </h3>
+                    
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="identifier" class="form-label">{{ t('auth.username_or_email') }}</label>
+                            <input type="text" class="form-control" id="identifier" name="identifier" required autofocus>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">{{ t('auth.password') }}</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-sign-in-alt"></i> {{ t('nav.login') }}
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('auth.forgot_password') }}" class="text-decoration-none">
+                            <i class="fas fa-question-circle"></i> {{ t('auth.forgot_password') }}
+                        </a>
+                    </div>
+
+                    <hr>
+                    <p class="text-center">
+                        {{ t('auth.no_account') }} 
+                        <a href="{{ url_for('auth.register') }}">{{ t('auth.register_here') }}</a>
+                    </p>
+                    
+                    <div class="alert alert-info mt-3 p-3">
+                        <strong>{{ t('auth.demo_credentials') }}:</strong><br>
+                        {{ t('auth.username') }}: admin<br>
+                        {{ t('auth.email_address') }}: admin@pharmacy.com<br>
+                        {{ t('auth.password') }}: admin123
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

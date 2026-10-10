@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('title.register') }} - {{ t('app.name') }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-lg">
+            <div class="card-body p-5">
+                <h2 class="text-center mb-2">📋 {{ t('auth.register_pharmacy') }}</h2>
+                <p class="text-center text-muted mb-4">{{ t('auth.join_customers') }}</p>
+
+                <form method="POST" novalidate class="needs-validation">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="full_name" class="form-label">{{ t('auth.full_name') }}</label>
+                            <input type="text" class="form-control" id="full_name" name="full_name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="shop_name" class="form-label">{{ t('auth.shop_name') }}</label>
+                            <input type="text" class="form-control" id="shop_name" name="shop_name" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">{{ t('auth.email') }}</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="username" class="form-label">{{ t('auth.username') }}</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="password" class="form-label">{{ t('auth.password') }}</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                            <small class="text-muted">{{ t('auth.password_hint') }}</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="contact_number" class="form-label">{{ t('auth.contact_number') }}</label>
+                            <input type="tel" class="form-control" id="contact_number" name="contact_number" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="license_number" class="form-label">{{ t('auth.license_number') }}</label>
+                            <input type="text" class="form-control" id="license_number" name="license_number" placeholder="e.g., DL/2025/001234" required>
+                            <small class="text-muted">{{ t('auth.license_number') }}</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="city" class="form-label">{{ t('auth.city') }}</label>
+                            <input type="text" class="form-control" id="city" name="city">
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info" role="alert">
+                        <strong>⚠️ {{ t('auth.important') }}:</strong> {{ t('auth.verification_note') }}
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg w-100">{{ t('auth.register_now') }}</button>
+                </form>
+
+                <hr class="my-4">
+                <p class="text-center text-muted">
+                    {{ t('auth.already_have_account') }} <a href="{{ url_for('auth.login') }}">{{ t('auth.login_here') }}</a>
+                </p>
+                <p class="text-center text-muted mt-3">
+                    <small><a href="http://localhost:5000/">← {{ t('auth.back_to_main_app') }}</a></small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

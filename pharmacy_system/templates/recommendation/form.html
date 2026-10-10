@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}AI Symptom Checker & Dosage Guide - AcuMeds{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9 col-md-11">
+        <!-- Main AI Card -->
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden mb-4">
+            <div class="card-header bg-gradient bg-success text-white py-3 px-4 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="bg-white text-success rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="fas fa-robot fa-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">AI Medicine & Clinical Dosage System</h4>
+                        <small class="text-white-50">Smart symptom diagnosis & evidence-based dosage guidance (खुराक एवं दवा परामर्श)</small>
+                    </div>
+                </div>
+                <span class="badge bg-light text-success fw-bold px-3 py-2 rounded-pill shadow-sm">
+                    <i class="fas fa-sparkles text-warning me-1"></i> AI Powered
+                </span>
+            </div>
+
+            <div class="card-body p-4 p-md-5">
+                <p class="lead text-secondary mb-4">
+                    Describe your symptoms in simple <strong>English</strong> or <strong>Hindi/Hinglish</strong>. Our AI system analyzes your health condition, recommends suitable medicines from verified pharmacies, and calculates accurate <strong>dosage, frequency, and timing instructions</strong>.
+                </p>
+
+                <!-- Quick Symptom Tags / Chips -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-dark mb-2">
+                        <i class="fas fa-magic text-success me-1"></i> Quick Click Symptoms (क्लिक करके चुनें):
+                    </label>
+                    <div class="d-flex flex-wrap gap-2" id="symptomChips">
+                        <button type="button" class="btn btn-outline-success btn-sm rounded-pill chip-btn" data-symptom="High fever and chills">
+                            🌡️ Fever / बुखार
+                        </button>
+                        <button type="button" class="btn btn-outline-success btn-sm rounded-pill chip-btn" data-symptom="Severe cough and throat pain">
+                            🗣️ Cough / खांसी
+                        </button>
+                        <button type="button" class="btn btn-outline-success btn-sm rounded-pill chip-btn" data-symptom="Runny nose and cold with congestion">
+                            🤧 Cold & Sneezing / जुकाम
+                        </button>
+                        <button type="button" class="btn btn-outline-success btn-sm rounded-pill chip-btn" data-symptom="Throbbing headache and eye pressure">
+                            🤕 Headache / सिर दर्द
+                        </button>
+                        <button type="button" class="btn btn-outline-success btn-sm rounded-pill chip-btn" data-symptom="Severe acidity, heartburn and gas bloating">
+                            🔥 Acidity & Gas / गैस व जलन
+                        </button>
+                        <button type="button" class="btn btn-outline-success btn-sm rounded-pill chip-btn" data-symptom="Stomach pain and cramps">
+                            🤢 Stomach Pain / पेट दर्द
+                        </button>
+                        <button type="button" class="btn btn-outline-success btn-sm rounded-pill chip-btn" data-symptom="Loose motions, diarrhea and weakness">
+                            💧 Loose Motion / दस्त
+                        </button>
+                        <button type="button" class="btn btn-outline-success btn-sm rounded-pill chip-btn" data-symptom="Body pain, muscular ache and fatigue">
+                            💪 Body Ache / बदन दर्द
+                        </button>
+                        <button type="button" class="btn btn-outline-success btn-sm rounded-pill chip-btn" data-symptom="Skin allergy with itching and red rashes">
+                            🔴 Allergy & Rash / एलर्जी
+                        </button>
+                        <button type="button" class="btn btn-outline-success btn-sm rounded-pill chip-btn" data-symptom="Sore throat and difficulty swallowing">
+                            🧣 Sore Throat / गला खराब
+                        </button>
+                        <button type="button" class="btn btn-outline-success btn-sm rounded-pill chip-btn" data-symptom="Extreme weakness and dizziness">
+                            ⚡ Weakness / कमजोरी
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Input Form -->
+                <form method="POST" action="{{ url_for('recommendation.get_recommendation') }}" id="recommendationForm">
+                    <div class="row mb-3 g-3">
+                        <div class="col-md-7">
+                            <label for="symptom_title" class="form-label fw-bold text-dark">
+                                <i class="fas fa-tag text-muted me-1"></i> Health Issue / Condition Title (Optional)
+                            </label>
+                            <input type="text" id="symptom_title" name="symptom_title" class="form-control form-control-lg rounded-3" 
+                                   placeholder="e.g. High fever with throat pain (बुखार और गला दर्द)">
+                        </div>
+                        <div class="col-md-5">
+                            <label for="age_group" class="form-label fw-bold text-dark">
+                                <i class="fas fa-user-circle text-muted me-1"></i> Patient Age Group (आयु वर्ग)
+                            </label>
+                            <select id="age_group" name="age_group" class="form-select form-select-lg rounded-3">
+                                <option value="adult" selected>Adult (18 - 60 years)</option>
+                                <option value="child">Child / Pediatric (&lt; 18 years)</option>
+                                <option value="senior">Senior Citizen (60+ years)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="symptoms" class="form-label fw-bold text-dark">
+                            <i class="fas fa-notes-medical text-success me-1"></i> Describe Your Symptoms in Detail (लक्षण विस्तार से लिखें) <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control rounded-3 p-3" id="symptoms" name="symptoms" rows="4" 
+                                  placeholder="Type your symptoms here... (e.g., I have high fever since yesterday, body ache, and persistent dry cough. I also feel slight nausea.)" 
+                                  required></textarea>
+                        <div class="form-text text-muted d-flex justify-content-between mt-2">
+                            <span><i class="fas fa-shield-alt text-success me-1"></i> Private & secure AI analysis</span>
+                            <span id="charCount" class="text-muted small">0 characters</span>
+                        </div>
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-success btn-lg py-3 rounded-3 shadow fw-bold text-uppercase tracking-wider">
+                            <i class="fas fa-stethoscope me-2"></i> Get Medicine & Dosage Recommendations
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Medical Disclaimer -->
+                <div class="alert alert-warning border-0 rounded-3 p-3 mt-4 mb-0 bg-warning bg-opacity-10 d-flex align-items-start">
+                    <i class="fas fa-exclamation-triangle text-warning fa-2x me-3 flex-shrink-0 mt-1"></i>
+                    <div>
+                        <strong class="text-dark">Clinical Safety Notice:</strong>
+                        <p class="small text-secondary mb-0 mt-1">
+                            This AI Recommendation System provides evidence-based suggestions and standard clinical dosages for informational purposes. If you experience severe chest pain, extreme breathlessness, or persistent high fever (&gt;3 days), consult a registered doctor immediately or book an appointment through our <a href="{{ url_for('doctor_consultation.list_doctors') }}" class="alert-link">Doctor Portal</a>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Link -->
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <a href="{{ url_for('recommendation.recommendation_history') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="fas fa-history me-1"></i> View Past Recommendations
+            </a>
+            <a href="{{ url_for('doctor_consultation.list_doctors') }}" class="btn btn-outline-primary rounded-pill px-4">
+                <i class="fas fa-user-md me-1"></i> Consult a Certified Doctor
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const symptomArea = document.getElementById('symptoms');
+    const titleInput = document.getElementById('symptom_title');
+    const charCount = document.getElementById('charCount');
+    const chipButtons = document.querySelectorAll('.chip-btn');
+
+    chipButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const sym = this.getAttribute('data-symptom');
+            if (symptomArea.value.trim() === '') {
+                symptomArea.value = sym;
+                if (!titleInput.value) {
+                    titleInput.value = this.innerText.trim();
+                }
+            } else {
+                symptomArea.value += ', ' + sym;
+            }
+            symptomArea.focus();
+            updateCount();
+            this.classList.replace('btn-outline-success', 'btn-success');
+            setTimeout(() => {
+                this.classList.replace('btn-success', 'btn-outline-success');
+            }, 500);
+        });
+    });
+
+    symptomArea.addEventListener('input', updateCount);
+
+    function updateCount() {
+        charCount.textContent = symptomArea.value.length + ' characters';
+    }
+});
+</script>
+{% endblock %}

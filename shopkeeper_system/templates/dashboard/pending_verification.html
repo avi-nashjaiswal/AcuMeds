@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Pending Verification - AcuMeds Shopkeeper{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-lg-6">
+        <div class="card shadow-lg border-0">
+            <div class="card-body text-center py-5">
+                <div style="font-size: 4rem; color: #ffc107; margin-bottom: 20px;">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                
+                <h2 class="mb-3">⏳ Awaiting Admin Verification</h2>
+
+                {% if shopkeeper.verification_notes %}
+                <div class="alert alert-danger text-start">
+                    <strong>Access update:</strong>
+                    {{ shopkeeper.verification_notes }}
+                </div>
+                {% endif %}
+                
+                <p class="text-muted mb-4">
+                    Thank you for registering your shop with AcuMeds. 
+                    Your registration details are under review by our admin team.
+                </p>
+                
+                <!-- Shop Details -->
+                <div class="alert alert-light text-start mb-4">
+                    <h6 class="mb-3"><i class="fas fa-store"></i> Your Shop Details</h6>
+                    <p class="mb-2">
+                        <strong>Shop Name:</strong><br>
+                        {{ shopkeeper.shop_name }}
+                    </p>
+                    <p class="mb-2">
+                        <strong>License Number:</strong><br>
+                        {{ shopkeeper.license_number }}
+                    </p>
+                    <p class="mb-2">
+                        <strong>Contact:</strong><br>
+                        {{ shopkeeper.contact_number }}
+                    </p>
+                    <p class="mb-0">
+                        <strong>Applied On:</strong><br>
+                        {{ shopkeeper.created_at.strftime('%d %b %Y at %I:%M %p') }}
+                    </p>
+                </div>
+                
+                <!-- Timeline -->
+                <div class="alert alert-info mb-4">
+                    <h6 class="mb-3 text-start"><i class="fas fa-list"></i> Verification Process</h6>
+                    <div class="timeline text-start">
+                        <div class="mb-3">
+                            <span class="badge bg-success me-2">✓</span>
+                            <strong>Application Submitted</strong>
+                            <small class="text-muted d-block">{{ shopkeeper.created_at.strftime('%d %b %Y') }}</small>
+                        </div>
+                        <div class="mb-3">
+                            <span class="badge bg-warning me-2" style="width: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 0.8rem;"></i>
+                            </span>
+                            <strong>Under Review</strong>
+                            <small class="text-muted d-block">Our team is verifying your documents</small>
+                        </div>
+                        <div>
+                            <span class="badge bg-secondary me-2">○</span>
+                            <strong>Approval Notification</strong>
+                            <small class="text-muted d-block">You'll receive an email once approved</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- What to expect -->
+                <div class="card card-sm bg-light mb-4">
+                    <div class="card-body text-start">
+                        <h6 class="card-title"><i class="fas fa-question-circle"></i> What's Next?</h6>
+                        <ul class="small mb-0">
+                            <li>Our admin team will verify your shop license</li>
+                            <li>You'll receive a confirmation email once approved</li>
+                            <li>Upon approval, you can add medicines and start accepting orders</li>
+                            <li>Typical verification takes 24-48 hours</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Logout -->
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    border-left: 2px solid #dee2e6;
+    padding-left: 15px;
+}
+</style>
+{% endblock %}

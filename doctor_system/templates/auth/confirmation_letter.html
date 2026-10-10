@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctor Registration Confirmation Letter - Dr. {{ doctor.user.full_name or doctor.user.username }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #0f766e;
+      --primary-dark: #115e59;
+      --accent: #0284c7;
+      --slate-900: #0f172a;
+      --slate-700: #334155;
+      --slate-500: #64748b;
+      --slate-100: #f1f5f9;
+      --border: #cbd5e1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #e2e8f0;
+      color: var(--slate-900);
+      padding: 30px 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .toolbar {
+      width: 100%;
+      max-width: 820px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-outline {
+      background: white;
+      color: var(--slate-700);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover {
+      background: var(--slate-100);
+    }
+
+    /* Letterhead Paper Container */
+    .letterhead-paper {
+      width: 100%;
+      max-width: 820px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      padding: 50px 60px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Watermark */
+    .watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-30deg);
+      font-size: 5.5rem;
+      font-weight: 900;
+      color: rgba(15, 118, 110, 0.04);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      pointer-events: none;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .letter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 3px solid var(--primary);
+      padding-bottom: 24px;
+      margin-bottom: 28px;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-logo {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #0f766e, #0284c7);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.8rem;
+    }
+
+    .brand-title h1 {
+      font-size: 1.6rem;
+      color: var(--slate-900);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    .brand-title p {
+      font-size: 0.82rem;
+      color: var(--slate-500);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .meta-section {
+      text-align: right;
+      font-size: 0.85rem;
+      color: var(--slate-700);
+    }
+
+    .meta-section .ref-badge {
+      display: inline-block;
+      background: var(--slate-100);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-weight: 700;
+      color: var(--primary);
+      margin-top: 4px;
+    }
+
+    .letter-title {
+      text-align: center;
+      margin: 24px 0 28px 0;
+    }
+
+    .letter-title h2 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--slate-900);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .letter-title .subtitle {
+      font-size: 0.9rem;
+      color: var(--slate-500);
+      margin-top: 4px;
+    }
+
+    .letter-body {
+      font-size: 0.96rem;
+      line-height: 1.65;
+      color: #1e293b;
+    }
+
+    .salutation {
+      font-weight: 700;
+      margin-bottom: 16px;
+      font-size: 1.05rem;
+    }
+
+    .details-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      font-size: 0.92rem;
+    }
+
+    .details-table th, .details-table td {
+      border: 1px solid #e2e8f0;
+      padding: 10px 14px;
+      text-align: left;
+    }
+
+    .details-table th {
+      background: #f8fafc;
+      color: var(--slate-700);
+      font-weight: 700;
+      width: 32%;
+    }
+
+    .status-stamp {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .status-pending {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #f59e0b;
+    }
+
+    .status-verified {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #22c55e;
+    }
+
+    .notice-box {
+      background: #f8fafc;
+      border-left: 4px solid var(--accent);
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 0.88rem;
+      color: var(--slate-700);
+      border-radius: 0 8px 8px 0;
+    }
+
+    .signatures-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 45px;
+      padding-top: 20px;
+    }
+
+    .signature-block {
+      text-align: center;
+    }
+
+    .signature-line {
+      width: 200px;
+      border-top: 1px dashed var(--slate-500);
+      margin-bottom: 8px;
+    }
+
+    .seal-box {
+      width: 105px;
+      height: 105px;
+      border: 2px dashed var(--primary);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--primary);
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 6px;
+      letter-spacing: 0.05em;
+      transform: rotate(-10deg);
+    }
+
+    .letter-footer {
+      margin-top: 40px;
+      padding-top: 15px;
+      border-top: 1px solid #e2e8f0;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--slate-500);
+    }
+
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .toolbar {
+        display: none !important;
+      }
+      .letterhead-paper {
+        border: none;
+        box-shadow: none;
+        padding: 20px;
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Toolbar -->
+  <div class="toolbar">
+    <a href="{{ url_for('auth.pending_verification') }}" class="btn btn-outline">
+      <i class="fa-solid fa-arrow-left"></i> Back to Portal
+    </a>
+    <div style="display: flex; gap: 10px;">
+      <button onclick="window.print()" class="btn btn-primary">
+        <i class="fa-solid fa-print"></i> Print / Save as PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Letter Container -->
+  <div class="letterhead-paper">
+    <div class="watermark">ACUMEDS MEDICAL BOARD</div>
+
+    <!-- Header -->
+    <header class="letter-header">
+      <div class="brand-section">
+        <div class="brand-logo">
+          <i class="fa-solid fa-staff-snake"></i>
+        </div>
+        <div class="brand-title">
+          <h1>AcuMeds Telehealth</h1>
+          <p>Medical Board & Practitioner Verification Registry</p>
+        </div>
+      </div>
+      <div class="meta-section">
+        <div><strong>Date of Issue:</strong> {{ doctor.created_at.strftime('%d %B, %Y') if doctor.created_at else 'Today' }}</div>
+        <div><strong>Application Ref:</strong></div>
+        <div class="ref-badge">{{ doctor.registration_ref or ('ACU-DOC-REG-' ~ doctor.id) }}</div>
+      </div>
+    </header>
+
+    <!-- Title -->
+    <div class="letter-title">
+      <h2>Medical Practitioner Registration Confirmation Letter</h2>
+      <div class="subtitle">Official Acknowledgement of Application for Clinical Teleconsultation Practice</div>
+    </div>
+
+    <!-- Letter Body -->
+    <div class="letter-body">
+      <div class="salutation">
+        Dear Dr. {{ doctor.user.full_name or doctor.user.username }},
+      </div>
+
+      <p>
+        This letter serves as formal acknowledgement that your registration application to practice as an accredited medical practitioner on the <strong>AcuMeds Telehealth & Clinical Services Platform</strong> has been successfully received and logged into our central verification database.
+      </p>
+
+      <p style="margin-top: 12px;">
+        The AcuMeds Central Medical Verification Board is currently processing your submitted medical registration credentials, clinical qualifications, and state medical council licensure. Below is the summary of your registered particulars:
+      </p>
+
+      <!-- Details Table -->
+      <table class="details-table">
+        <tbody>
+          <tr>
+            <th>Practitioner Name</th>
+            <td><strong>{{ doctor.user.full_name or doctor.user.username }}</strong></td>
+          </tr>
+          <tr>
+            <th>Medical Registration / License No.</th>
+            <td><strong style="font-family: monospace; font-size: 1.05rem; color: var(--primary);">{{ doctor.license_number }}</strong></td>
+          </tr>
+          <tr>
+            <th>Specialization & Qualifications</th>
+            <td>{{ doctor.specialization }} ({{ doctor.qualification }})</td>
+          </tr>
+          <tr>
+            <th>Clinical Experience</th>
+            <td>{{ doctor.experience_years }} Years of Active Medical Practice</td>
+          </tr>
+          <tr>
+            <th>Clinic / Hospital Affiliation</th>
+            <td>{{ doctor.clinic_name or 'AcuMeds Affiliated Clinic' }}</td>
+          </tr>
+          <tr>
+            <th>Practice Location / City</th>
+            <td>{{ doctor.clinic_address or doctor.city or 'Delhi' }}</td>
+          </tr>
+          <tr>
+            <th>Prescribed Consultation Fee</th>
+            <td><strong>₹{{ "%.2f"|format(doctor.consultation_fee) }}</strong> per session</td>
+          </tr>
+          <tr>
+            <th>Application Status</th>
+            <td>
+              {% if doctor.is_verified %}
+                <span class="status-stamp status-verified">✓ Verified & Approved</span>
+              {% else %}
+                <span class="status-stamp status-pending">⏳ Pending Admin Licensure Verification</span>
+              {% endif %}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="notice-box">
+        <strong><i class="fa-solid fa-circle-info"></i> Notice regarding Telemedicine Practice Compliance:</strong>
+        <p style="margin-top: 4px;">
+          In accordance with the Telemedicine Practice Guidelines issued under the National Medical Commission (NMC) Act, every physician is required to undergo identity and license validation prior to issuing digital e-prescriptions and conducting live teleconsultations.
+        </p>
+      </div>
+
+      {% if doctor.is_verified %}
+        <p style="color: #166534; font-weight: 600;">
+          Your medical credentials have been formally approved by the AcuMeds Admin Medical Board (Authorization Ref: <code>{{ doctor.approval_letter_ref or 'ACU-DOC-APPR-VERIFIED' }}</code>). You may conduct online video consults, manage clinical appointments, and dispense digital prescriptions.
+        </p>
+      {% else %}
+        <p>
+          Upon verification of your medical license against the state council directory by our platform administration, your doctor dashboard and patient booking capabilities will be activated immediately. You will receive real-time portal updates once approved.
+        </p>
+      {% endif %}
+
+      <!-- Signatures & Official Seal -->
+      <div class="signatures-section">
+        <div class="signature-block">
+          <div class="seal-box">
+            <i class="fa-solid fa-stamp" style="font-size: 1.2rem; margin-bottom: 2px;"></i>
+            AcuMeds<br>Registry<br>Seal
+          </div>
+        </div>
+
+        <div class="signature-block">
+          <div style="font-family: 'Brush Script MT', cursive, sans-serif; font-size: 1.6rem; color: var(--primary); margin-bottom: 4px;">
+            Dr. Anand Varma, MD
+          </div>
+          <div class="signature-line"></div>
+          <strong style="font-size: 0.88rem; display: block; color: var(--slate-900);">Chief Medical Officer</strong>
+          <span style="font-size: 0.78rem; color: var(--slate-500);">AcuMeds Central Medical Verification Board</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="letter-footer">
+      <p>AcuMeds Healthtech Private Limited • Reg. Telemedicine Network Provider</p>
+      <p>This is a computer-generated confirmation document. Verification queries: registry@acumeds.com</p>
+    </footer>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart - AcuMeds{% endblock %}
+
+{% block content %}
+<h1 class="mb-4"><i class="fas fa-shopping-cart"></i> Shopping Cart</h1>
+
+{% if cart_items %}
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Medicine</th>
+                                <th>Shop</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in cart_items %}
+                            <tr>
+                                <td><strong>{{ item.medicine.name }}</strong></td>
+                                <td>
+                                    {% if item.shopkeeper %}
+                                        <span class="badge bg-info">{{ item.shopkeeper.shop_name }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>₹{{ "%.2f"|format(item.medicine.price) }}</td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('cart.update_cart', item_id=item.id) }}" class="d-inline-flex">
+                                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="form-control form-control-sm" style="width: 60px;">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary ms-2">Update</button>
+                                    </form>
+                                </td>
+                                <td>
+                                    <strong>₹{{ "%.2f"|format(item.get_total()) }}</strong>
+                                </td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('cart.remove_from_cart', item_id=item.id) }}" style="display: inline;">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Remove this item?');">
+                                            <i class="fas fa-trash"></i> Remove
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <h4 class="mb-3">
+                        Total: <span class="text-success">₹{{ "%.2f"|format(total) }}</span>
+                    </h4>
+                    <p class="text-muted mb-3">
+                        <small>{{ cart_items|length }} item(s) in cart</small>
+                    </p>
+                    <a href="{{ url_for('order.checkout') }}" class="btn btn-success w-100 btn-lg">
+                        <i class="fas fa-credit-card"></i> Proceed to Checkout
+                    </a>
+                    <a href="{{ url_for('medicine.list_medicines') }}" class="btn btn-outline-primary w-100 mt-2">
+                        <i class="fas fa-arrow-left"></i> Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        <h4>Your cart is empty</h4>
+        <p>Start adding medicines to your cart!</p>
+        <a href="{{ url_for('medicine.list_medicines') }}" class="btn btn-primary">
+            <i class="fas fa-shopping-bag"></i> Browse Medicines
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Dashboard{% endblock %} - AcuMeds Doctor Portal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <!-- Icons & Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+{% if current_user.is_authenticated and current_user.role in ['doctor', 'admin'] %}
+<div class="app-container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-badge">
+        <i class="fa-solid fa-user-doctor"></i>
+      </div>
+      <div class="logo-text">
+        <h2>AcuMeds</h2>
+        <span>Doctor Portal</span>
+      </div>
+    </div>
+
+    <!-- Logged in Doctor Card -->
+    <div class="sidebar-doctor-card">
+      <div class="doctor-avatar-circle">
+        {{ current_user.full_name[4] if current_user.full_name and current_user.full_name.startswith('Dr.') else (current_user.full_name[0] if current_user.full_name else 'D') }}
+      </div>
+      <div class="doctor-info">
+        <h4>{{ current_user.full_name or 'Dr. Doctor' }}</h4>
+        <p>{{ current_user.doctor.specialization if current_user.doctor else 'Specialist' }}</p>
+      </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <ul class="nav-menu">
+      <li class="nav-label">Clinical Console</li>
+      <li class="nav-item">
+        <a href="{{ url_for('doctor.dashboard') }}" class="nav-link {% if request.endpoint == 'doctor.dashboard' %}active{% endif %}">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{{ url_for('doctor.appointments') }}" class="nav-link {% if request.endpoint in ['doctor.appointments', 'doctor.consultation'] %}active{% endif %}">
+          <i class="fa-solid fa-calendar-check"></i>
+          <span>Appointments</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{{ url_for('doctor.patients') }}" class="nav-link {% if request.endpoint == 'doctor.patients' %}active{% endif %}">
+          <i class="fa-solid fa-hospital-user"></i>
+          <span>My Patients</span>
+        </a>
+      </li>
+
+      <li class="nav-label">Clinic Management</li>
+      <li class="nav-item">
+        <a href="{{ url_for('doctor.schedule') }}" class="nav-link {% if request.endpoint == 'doctor.schedule' %}active{% endif %}">
+          <i class="fa-solid fa-clock"></i>
+          <span>Schedule & Fee</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{{ url_for('doctor.profile') }}" class="nav-link {% if request.endpoint == 'doctor.profile' %}active{% endif %}">
+          <i class="fa-solid fa-id-card"></i>
+          <span>Doctor Profile</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{{ url_for('doctor.approval_letter') }}" target="_blank" class="nav-link">
+          <i class="fa-solid fa-award" style="color: #f59e0b;"></i>
+          <span>Approval Certificate</span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <a href="{{ url_for('auth.logout') }}" class="btn-logout">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <span>Logout Session</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <div class="main-wrapper">
+    <!-- Top Bar -->
+    <header class="top-navbar">
+      <div class="page-title">
+        <h1>{% block page_title %}Clinical Dashboard{% endblock %}</h1>
+      </div>
+      <div class="navbar-actions">
+        <div class="status-pill online">
+          <span class="status-dot"></span>
+          <span>Online & Available</span>
+        </div>
+        <div style="color: var(--slate-500); font-size: 0.88rem;">
+          <i class="fa-solid fa-calendar-day"></i> {{ datetime.now().strftime('%d %b, %Y') if datetime else 'Today' }}
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Body -->
+    <main class="content-body">
+      <!-- Flash Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-messages">
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">
+                <span>{{ message }}</span>
+                <button type="button" style="background: none; border: none; cursor: pointer; color: inherit; font-weight: bold;" onclick="this.parentElement.remove()">✕</button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% else %}
+  <div style="width: 100vw; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f172a, #0f766e);">
+    {% block auth_content %}{% endblock %}
+  </div>
+{% endif %}
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

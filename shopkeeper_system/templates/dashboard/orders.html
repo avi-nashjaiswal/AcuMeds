@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Orders - AcuMeds Shopkeeper{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-lg-12">
+        <h1>📋 Customer Orders</h1>
+        <p class="text-muted">Orders containing your medicines</p>
+    </div>
+</div>
+
+{% if orders %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Total Amount</th>
+                <th>Status</th>
+                <th>Order Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td><strong>#{{ order.id }}</strong></td>
+                <td>
+                    {% set customer = order.user %}
+                    {{ customer.full_name or customer.username or 'Customer' if customer else (order.customer_name or 'Customer') }}
+                    <br><small class="text-muted">{{ customer.email if customer and customer.email else (order.customer_email or 'N/A') }}</small>
+                </td>
+                <td class="fw-bold">₹{{ "%.2f"|format(order.total_amount) }}</td>
+                <td>
+                    {% if order.status == 'Pending' %}
+                        <span class="badge bg-warning">{{ order.status }}</span>
+                    {% elif order.status == 'Confirmed' %}
+                        <span class="badge bg-info">{{ order.status }}</span>
+                    {% elif order.status == 'Ready' %}
+                        <span class="badge bg-info">{{ order.status }}</span>
+                    {% elif order.status == 'Shipped' %}
+                        <span class="badge bg-primary">{{ order.status }}</span>
+                    {% elif order.status == 'Delivered' %}
+                        <span class="badge bg-success">{{ order.status }}</span>
+                    {% elif order.status == 'Cancelled' %}
+                        <span class="badge bg-danger">{{ order.status }}</span>
+                    {% else %}
+                        <span class="badge bg-secondary">{{ order.status }}</span>
+                    {% endif %}
+                    <div class="mt-1">
+                        <span class="badge bg-{% if order.payment_status == 'Paid' %}success{% elif order.payment_status == 'Pending Verification' %}warning text-dark{% elif order.payment_status == 'Failed' %}danger{% else %}secondary{% endif %}">
+                            Payment: {{ order.payment_status or 'Pending' }}
+                        </span>
+                    </div>
+                </td>
+                <td>{{ order.order_date.strftime('%Y-%m-%d %H:%M') if order.order_date else 'N/A' }}</td>
+                <td>
+                    <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#orderModal{{ order.id }}">
+                        <i class="fas fa-eye"></i> View
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% for order in orders %}
+<div class="modal fade" id="orderModal{{ order.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Order #{{ order.id }} Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% set customer = order.user %}
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6>Customer</h6>
+                        <div>{{ customer.full_name or customer.username or 'Customer' if customer else (order.customer_name or 'Customer') }}</div>
+                        <div class="text-muted">{{ customer.email if customer and customer.email else (order.customer_email or 'N/A') }}</div>
+                        <div class="text-muted">{{ customer.phone if customer and customer.phone else (order.customer_phone or 'N/A') }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Order Summary</h6>
+                        <div>Status: <strong>{{ order.status }}</strong></div>
+                        <div>Payment: <strong>{{ order.payment_status or 'Pending' }}</strong></div>
+                        {% if order.payment_method %}
+                        <div>Method: <strong>{{ order.payment_method }}</strong></div>
+                        {% endif %}
+                        {% if order.payment_reference %}
+                        <div>Transaction ID: <strong>{{ order.payment_reference }}</strong></div>
+                        {% endif %}
+                        <div>Total: <strong>₹{{ "%.2f"|format(order.total_amount) }}</strong></div>
+                        <div>Order Date: {{ order.order_date.strftime('%Y-%m-%d %H:%M') if order.order_date else 'N/A' }}</div>
+                    </div>
+                </div>
+                <h6>Items</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Medicine</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.order_items %}
+                            <tr>
+                                <td>{{ item.medicine.name if item.medicine else 'Item' }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>₹{{ "%.2f"|format(item.price_at_purchase) }}</td>
+                                <td>₹{{ "%.2f"|format(item.price_at_purchase * item.quantity) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-muted">No items found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if order.status not in ['Delivered', 'Cancelled'] %}
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    {% if order.status not in ['Ready', 'Shipped', 'Delivered'] %}
+                    <form method="POST" action="{{ url_for('dashboard.update_order_status', order_id=order.id) }}">
+                        <input type="hidden" name="status" value="Ready">
+                        <button class="btn btn-outline-info">
+                            <i class="fas fa-box"></i> Mark Ready
+                        </button>
+                    </form>
+                    {% endif %}
+                    {% if order.status not in ['Shipped', 'Delivered'] %}
+                    <form method="POST" action="{{ url_for('dashboard.update_order_status', order_id=order.id) }}">
+                        <input type="hidden" name="status" value="Shipped">
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-truck"></i> Mark Shipped
+                        </button>
+                    </form>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('dashboard.update_order_status', order_id=order.id) }}">
+                        <input type="hidden" name="status" value="Delivered">
+                        <button class="btn btn-success">
+                            <i class="fas fa-check-circle"></i> Mark Delivered
+                        </button>
+                    </form>
+                    {% if order.status in ['Pending', 'Confirmed', 'Ready'] %}
+                    <form method="POST" action="{{ url_for('dashboard.update_order_status', order_id=order.id) }}" onsubmit="return confirm('Cancel this order?');">
+                        <input type="hidden" name="status" value="Cancelled">
+                        <button class="btn btn-outline-danger">
+                            <i class="fas fa-ban"></i> Cancel Order
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% elif order.status == 'Cancelled' %}
+                <div class="alert alert-danger mt-3 mb-0">Order cancelled.</div>
+                {% else %}
+                <div class="alert alert-success mt-3 mb-0">Order already delivered.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="alert alert-info text-center py-5">
+    <i class="fas fa-inbox" style="font-size: 3rem; opacity: 0.5;"></i>
+    <h5 class="mt-3">No orders yet</h5>
+    <p class="text-muted">When customers order your medicines, they will appear here.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get('open_order');
+
+    const autoRefreshIntervalMs = 15000;
+
+    function hasOpenModal() {
+        return Boolean(document.querySelector('.modal.show'));
+    }
+
+    function refreshOrdersIfIdle() {
+        if (hasOpenModal() || document.hidden) {
+            return;
+        }
+
+        window.location.reload();
+    }
+
+    if (orderId) {
+        const modalEl = document.getElementById(`orderModal${orderId}`);
+        if (modalEl) {
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+
+            params.delete('open_order');
+            const query = params.toString();
+            const nextUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
+            window.history.replaceState({}, '', nextUrl);
+        }
+    }
+
+    setInterval(refreshOrdersIfIdle, autoRefreshIntervalMs);
+});
+</script>
+{% endblock %}

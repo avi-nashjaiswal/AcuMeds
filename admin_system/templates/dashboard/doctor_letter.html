@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Confirmation Letter - Dr. {{ doctor.user.full_name or doctor.user.username }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-accent: #3b82f6;
+      --success: #10b981;
+      --slate-900: #0f172a;
+      --slate-700: #334155;
+      --slate-500: #64748b;
+      --slate-100: #f8fafc;
+      --border: #cbd5e1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #f1f5f9;
+      color: var(--slate-900);
+      padding: 30px 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .toolbar {
+      width: 100%;
+      max-width: 820px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-outline {
+      background: white;
+      color: var(--slate-700);
+      border: 1px solid var(--border);
+    }
+
+    .letterhead-paper {
+      width: 100%;
+      max-width: 820px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      padding: 50px 60px;
+      position: relative;
+    }
+
+    .letter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 3px solid var(--primary);
+      padding-bottom: 20px;
+      margin-bottom: 25px;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 52px;
+      height: 52px;
+      background: var(--primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.6rem;
+    }
+
+    .brand-title h1 {
+      font-size: 1.5rem;
+      color: var(--slate-900);
+      font-weight: 800;
+    }
+
+    .brand-title p {
+      font-size: 0.8rem;
+      color: var(--slate-500);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .meta-section {
+      text-align: right;
+      font-size: 0.85rem;
+    }
+
+    .letter-title {
+      text-align: center;
+      margin: 20px 0 25px 0;
+    }
+
+    .letter-title h2 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--slate-900);
+      text-transform: uppercase;
+    }
+
+    .details-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 0.92rem;
+    }
+
+    .details-table th, .details-table td {
+      border: 1px solid #e2e8f0;
+      padding: 10px 14px;
+      text-align: left;
+    }
+
+    .details-table th {
+      background: #f8fafc;
+      width: 32%;
+      color: var(--slate-700);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+    .status-approved { background: #dcfce7; color: #15803d; }
+    .status-pending { background: #fef3c7; color: #b45309; }
+
+    .signatures-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 40px;
+      padding-top: 20px;
+    }
+
+    .signature-block {
+      text-align: center;
+    }
+
+    .signature-line {
+      width: 180px;
+      border-top: 1px dashed var(--slate-500);
+      margin-bottom: 6px;
+    }
+
+    .seal-box {
+      width: 100px;
+      height: 100px;
+      border: 2px dashed var(--primary);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--primary);
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 4px;
+      transform: rotate(-10deg);
+    }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .toolbar { display: none !important; }
+      .letterhead-paper { border: none; box-shadow: none; padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <a href="{{ url_for('dashboard.manage_doctors') }}" class="btn btn-outline">
+      <i class="fa-solid fa-arrow-left"></i> Back to Doctors Management
+    </a>
+    <button onclick="window.print()" class="btn btn-primary">
+      <i class="fa-solid fa-print"></i> Print Official Letter
+    </button>
+  </div>
+
+  <div class="letterhead-paper">
+    <header class="letter-header">
+      <div class="brand-section">
+        <div class="brand-logo">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div class="brand-title">
+          <h1>AcuMeds Administration</h1>
+          <p>Medical Practitioner Verification & Authorization Registry</p>
+        </div>
+      </div>
+      <div class="meta-section">
+        <div><strong>Date:</strong> {{ doctor.verified_at.strftime('%d %B, %Y') if doctor.verified_at else (doctor.created_at.strftime('%d %B, %Y') if doctor.created_at else 'Today') }}</div>
+        <div><strong>Ref:</strong> <code style="color: var(--primary); font-weight: bold;">{{ doctor.approval_letter_ref or doctor.registration_ref or ('ACU-DOC-' ~ doctor.id) }}</code></div>
+      </div>
+    </header>
+
+    <div class="letter-title">
+      <h2>Medical Practitioner Verification & Authorization Notice</h2>
+    </div>
+
+    <div style="font-size: 0.95rem; line-height: 1.65; color: #334155;">
+      <p style="margin-bottom: 14px;">
+        To <strong>Dr. {{ doctor.user.full_name or doctor.user.username }}</strong>,
+      </p>
+
+      <p>
+        This official document confirms that the medical credentials, qualifications, and state council registration for the below practitioner have been inspected and processed by the AcuMeds Healthcare Administration.
+      </p>
+
+      <table class="details-table">
+        <tbody>
+          <tr>
+            <th>Practitioner Name</th>
+            <td><strong>Dr. {{ doctor.user.full_name or doctor.user.username }}</strong></td>
+          </tr>
+          <tr>
+            <th>Medical License No.</th>
+            <td><strong style="font-family: monospace; font-size: 1.05rem; color: #1e3a8a;">{{ doctor.license_number }}</strong></td>
+          </tr>
+          <tr>
+            <th>Specialization & Qualification</th>
+            <td>{{ doctor.specialization }} • {{ doctor.qualification }}</td>
+          </tr>
+          <tr>
+            <th>Practice Experience</th>
+            <td>{{ doctor.experience_years }} Years</td>
+          </tr>
+          <tr>
+            <th>Clinic / Location</th>
+            <td>{{ doctor.clinic_name or 'Clinic' }} • {{ doctor.city or 'Delhi' }}</td>
+          </tr>
+          <tr>
+            <th>Consultation Fee</th>
+            <td><strong>₹{{ "%.2f"|format(doctor.consultation_fee) }}</strong></td>
+          </tr>
+          <tr>
+            <th>Verification Status</th>
+            <td>
+              {% if doctor.is_verified %}
+                <span class="status-badge status-approved">✓ Approved & Certified</span>
+              {% else %}
+                <span class="status-badge status-pending">⏳ Pending Review</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% if doctor.verification_notes %}
+          <tr>
+            <th>Admin Remarks</th>
+            <td style="color: #0f766e; font-weight: 600;">{{ doctor.verification_notes }}</td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+
+      {% if doctor.is_verified %}
+      <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 14px 18px; margin: 20px 0; border-radius: 4px;">
+        <strong style="color: #166534;"><i class="fa-solid fa-circle-check"></i> Practice Authorization Granted:</strong>
+        <p style="margin-top: 4px; font-size: 0.9rem; color: #166534;">
+          The practitioner is authorized to accept appointments, consult patients via secure telehealth channels, and issue digital prescriptions across the AcuMeds ecosystem.
+        </p>
+      </div>
+      {% endif %}
+
+      <div class="signatures-section">
+        <div class="signature-block">
+          <div class="seal-box">
+            <i class="fa-solid fa-stamp" style="font-size: 1.2rem; margin-bottom: 2px;"></i>
+            AcuMeds<br>Admin<br>Approved
+          </div>
+        </div>
+
+        <div class="signature-block">
+          <div style="font-family: 'Brush Script MT', cursive, sans-serif; font-size: 1.6rem; color: var(--primary); margin-bottom: 4px;">
+            AcuMeds Board Admin
+          </div>
+          <div class="signature-line"></div>
+          <strong style="font-size: 0.88rem; display: block;">Authorized Signatory</strong>
+          <span style="font-size: 0.78rem; color: var(--slate-500);">Central Medical Administration</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

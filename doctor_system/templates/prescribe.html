@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Issue Digital Prescription (Rx){% endblock %}
+{% block page_title %}Digital e-Prescription Generator{% endblock %}
+
+{% block content %}
+<form method="POST" action="{{ url_for('doctor.prescribe', appointment_id=appointment.id) }}">
+  <!-- Patient Vitals & Clinical Diagnosis Card -->
+  <div class="card">
+    <div class="card-header">
+      <h2><i class="fa-solid fa-file-waveform" style="color: var(--primary);"></i> Patient Information & Clinical Vitals</h2>
+      <div>
+        <span class="badge badge-confirmed">Appointment #{{ appointment.id }}</span>
+      </div>
+    </div>
+
+    <!-- Patient Bar -->
+    <div class="rx-patient-bar" style="margin-bottom: 20px;">
+      <div>
+        <strong>Patient:</strong> {{ appointment.patient_name or (appointment.patient.full_name if appointment.patient else 'Patient') }}
+      </div>
+      <div>
+        <strong>Age / Gender:</strong> {{ appointment.patient_age or '30' }} yrs / {{ appointment.patient_gender or 'N/A' }}
+      </div>
+      <div>
+        <strong>Phone:</strong> {{ appointment.patient_phone or 'N/A' }}
+      </div>
+      <div>
+        <strong>Date:</strong> {{ appointment.appointment_date }}
+      </div>
+    </div>
+
+    <!-- Vitals Input Grid -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px;">
+      <div>
+        <label style="font-size: 0.82rem; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Blood Pressure (BP)</label>
+        <input type="text" name="vitals_bp" id="vitals-bp" placeholder="e.g. 120/80 mmHg" value="125/82 mmHg" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+      <div>
+        <label style="font-size: 0.82rem; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Heart / Pulse Rate</label>
+        <input type="text" name="vitals_pulse" placeholder="e.g. 74 bpm" value="76 bpm" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+      <div>
+        <label style="font-size: 0.82rem; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Body Temperature</label>
+        <input type="text" name="vitals_temp" placeholder="e.g. 98.6 °F" value="98.4 °F" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+      <div>
+        <label style="font-size: 0.82rem; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Weight (kg)</label>
+        <input type="text" name="vitals_weight" placeholder="e.g. 68 kg" value="70 kg" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+    </div>
+
+    <!-- Clinical Diagnosis -->
+    <div style="margin-bottom: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <label style="font-size: 0.85rem; font-weight: 700; color: #334155;">Clinical Diagnosis / Assessment <span style="color: var(--danger);">*</span></label>
+        <button type="button" id="run-ai-diagnosis-btn" class="btn btn-sm btn-secondary" style="font-size: 0.78rem;">
+          <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--primary);"></i> AI Differential Suggestion
+        </button>
+      </div>
+      <input type="text" name="diagnosis" required placeholder="e.g. Stage 1 Hypertension with mild exertion dyspnea" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; font-weight: 600;">
+    </div>
+
+    <!-- AI Diagnosis Box -->
+    <div id="ai-diagnosis-results" style="display: none; margin-bottom: 16px;"></div>
+
+    <input type="hidden" id="patient-symptoms-text" value="{{ appointment.symptoms or '' }}">
+    <input type="hidden" id="patient-age" value="{{ appointment.patient_age or '' }}">
+    <input type="hidden" id="patient-gender" value="{{ appointment.patient_gender or '' }}">
+  </div>
+
+  <!-- Prescribed Medicines Section -->
+  <div class="card">
+    <div class="card-header">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-family: serif; font-size: 1.8rem; font-weight: 800; color: var(--primary); line-height: 1;">℞</span>
+        <h2>Prescribed Medications (AcuMeds Inventory Connected)</h2>
+      </div>
+      <button type="button" id="add-med-btn" class="btn btn-primary btn-sm">
+        <i class="fa-solid fa-plus"></i> Add Medicine Row
+      </button>
+    </div>
+
+    <p style="font-size: 0.85rem; color: var(--slate-500); margin-bottom: 16px;">
+      Type any medicine name to search & link from AcuMeds shared medicine inventory. Patients will be able to 1-click buy these directly.
+    </p>
+
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width: 28%;">Medicine Name (Search/Type)</th>
+            <th style="width: 14%;">Strength / Dosage</th>
+            <th style="width: 18%;">Frequency</th>
+            <th style="width: 15%;">Timing</th>
+            <th style="width: 12%;">Duration</th>
+            <th style="width: 8%;">Qty</th>
+            <th style="width: 5%;"></th>
+          </tr>
+        </thead>
+        <tbody id="prescribed-meds-body">
+          <!-- Default Row 1 -->
+          <tr class="med-row">
+            <td>
+              <input type="text" name="med_name[]" class="form-control med-name-input" placeholder="Search medicine..." value="Telmisartan 40mg" required autocomplete="off" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+              <input type="hidden" name="med_id[]" class="med-id-input">
+              <div class="autocomplete-dropdown"></div>
+            </td>
+            <td>
+              <input type="text" name="med_dosage[]" class="form-control" placeholder="e.g. 40 mg" value="40 mg" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+            </td>
+            <td>
+              <select name="med_frequency[]" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                <option value="1-0-0 (Once Morning)" selected>1-0-0 (Morning)</option>
+                <option value="1-0-1 (Twice daily)">1-0-1 (Twice daily)</option>
+                <option value="1-1-1 (Thrice daily)">1-1-1 (Thrice daily)</option>
+                <option value="0-0-1 (Once Night)">0-0-1 (Night)</option>
+                <option value="SOS (As needed)">SOS (As needed)</option>
+              </select>
+            </td>
+            <td>
+              <select name="med_timing[]" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                <option value="After Food">After Food</option>
+                <option value="Before Food" selected>Before Food</option>
+                <option value="With Food">With Food</option>
+              </select>
+            </td>
+            <td>
+              <input type="text" name="med_duration[]" class="form-control" placeholder="e.g. 30 Days" value="30 Days" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+            </td>
+            <td>
+              <input type="number" name="med_qty[]" class="form-control" value="1" min="1" style="width: 60px; padding: 8px 6px; border: 1px solid #cbd5e1; border-radius: 6px;">
+            </td>
+            <td>
+              <button type="button" class="btn btn-sm btn-danger remove-med-btn" style="background: #fee2e2; color: #dc2626; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer;">✕</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Advice, Lab Tests & Follow-up -->
+  <div class="card">
+    <div class="card-header">
+      <h2><i class="fa-solid fa-list-check" style="color: var(--accent);"></i> Advice, Investigations & Follow-Up</h2>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px;">
+      <div>
+        <label style="font-size: 0.85rem; font-weight: 700; color: #334155; display: block; margin-bottom: 6px;">General Health & Dietary Advice</label>
+        <textarea name="general_advice" rows="3" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;" placeholder="Low salt diet, 30 min daily brisk walking, avoid smoking/caffeine.">Low sodium diet, maintain daily BP log morning/evening, 30 mins brisk walking, stay hydrated.</textarea>
+      </div>
+      <div>
+        <label style="font-size: 0.85rem; font-weight: 700; color: #334155; display: block; margin-bottom: 6px;">Diagnostic Tests Recommended (if any)</label>
+        <textarea name="tests_recommended" rows="3" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;" placeholder="ECG, Lipid Profile, Serum Creatinine, HbA1c">ECG (12 Lead), Lipid Profile, Serum Electrolytes, Fasting Blood Sugar</textarea>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: center; border-top: 1px solid var(--slate-100); padding-top: 18px;">
+      <div>
+        <label style="font-size: 0.85rem; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Follow-up Consultation Timeline</label>
+        <input type="text" name="follow_up_date" placeholder="e.g. After 2 Weeks with lab reports" value="After 2 Weeks with ECG & Lipid Report" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+
+      <div style="text-align: right; margin-top: 20px;">
+        <button type="submit" class="btn btn-primary" style="padding: 14px 32px; font-size: 1.05rem;">
+          <i class="fa-solid fa-stamp"></i> Issue & Sign Digital Prescription
+        </button>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

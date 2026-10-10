@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('title.home') }} - {{ t('app.name') }}{% endblock %}
+
+{% block content %}
+<div class="landing">
+    <section class="hero-panel">
+        <div class="hero-glow"></div>
+        <div class="row align-items-center g-4">
+            <div class="col-lg-7">
+                <p class="eyebrow">{{ t('home.eyebrow') }}</p>
+                <h1>{{ t('home.hero_title') }}</h1>
+                <p class="lead">{{ t('home.hero_body') }}</p>
+                <p class="text-muted">{{ t('home.hero_note') }}</p>
+                <div class="hero-actions">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-brand btn-lg">{{ t('home.sign_in') }}</a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-ghost btn-lg">{{ t('home.create_account') }}</a>
+                    <a href="#demo" class="btn btn-ghost btn-lg">{{ t('home.view_demo') }}</a>
+                </div>
+                <div class="hero-tags">
+                    <span class="tag">{{ t('home.badge_otp') }}</span>
+                    <span class="tag">{{ t('home.badge_live_location') }}</span>
+                    <span class="tag">{{ t('home.badge_fast_payouts') }}</span>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="hero-card">
+                    <div class="hero-card-header">
+                        <span class="status-pill">{{ t('home.live_route') }}</span>
+                        <h4>{{ t('home.active_delivery') }}</h4>
+                    </div>
+                    <div class="route-list">
+                        <div class="route-item">
+                            <div class="route-dot"></div>
+                            <div>
+                                <div class="route-title">{{ t('home.pickup_label') }}: Health Plus Pharmacy</div>
+                                <div class="route-meta">{{ t('home.eta_label') }} 12 mins</div>
+                            </div>
+                        </div>
+                        <div class="route-item">
+                            <div class="route-dot"></div>
+                            <div>
+                                <div class="route-title">{{ t('home.drop_label') }}: Ravi Kumar</div>
+                                <div class="route-meta">{{ t('home.otp_ready') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-grid">
+                        <div>
+                            <div class="stat-label">{{ t('home.pending_cash') }}</div>
+                            <div class="stat-value">INR 420</div>
+                        </div>
+                        <div>
+                            <div class="stat-label">{{ t('home.deliveries_today') }}</div>
+                            <div class="stat-value">8</div>
+                        </div>
+                        <div>
+                            <div class="stat-label">{{ t('home.avg_time') }}</div>
+                            <div class="stat-value">24m</div>
+                        </div>
+                        <div>
+                            <div class="stat-label">{{ t('home.on_time') }}</div>
+                            <div class="stat-value">98%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="metrics">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="metric-card reveal" style="--delay: 0.05s;">
+                    <h3>{{ t('home.otp_title') }}</h3>
+                    <p>{{ t('home.otp_body') }}</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card reveal" style="--delay: 0.1s;">
+                    <h3>{{ t('home.route_title') }}</h3>
+                    <p>{{ t('home.route_body') }}</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card reveal" style="--delay: 0.15s;">
+                    <h3>{{ t('home.settlement_title') }}</h3>
+                    <p>{{ t('home.settlement_body') }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="feature-grid">
+        <div class="section-head">
+            <p class="eyebrow">{{ t('home.core_capabilities') }}</p>
+            <h2>{{ t('home.core_title') }}</h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card reveal" style="--delay: 0.05s;">
+                    <div class="feature-icon"><i class="fas fa-route"></i></div>
+                    <h4>{{ t('home.smart_assignment') }}</h4>
+                    <p>{{ t('home.smart_assignment_body') }}</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card reveal" style="--delay: 0.1s;">
+                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h4>{{ t('home.proof_delivery') }}</h4>
+                    <p>{{ t('home.proof_delivery_body') }}</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card reveal" style="--delay: 0.15s;">
+                    <div class="feature-icon"><i class="fas fa-map-marker-alt"></i></div>
+                    <h4>{{ t('home.location_heartbeat') }}</h4>
+                    <p>{{ t('home.location_heartbeat_body') }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="steps">
+        <div class="section-head">
+            <p class="eyebrow">{{ t('home.how_it_works') }}</p>
+            <h2>{{ t('home.three_step') }}</h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="step-card reveal" style="--delay: 0.05s;">
+                    <div class="step-count">01</div>
+                    <h4>{{ t('home.assign') }}</h4>
+                    <p>{{ t('home.assign_body') }}</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-card reveal" style="--delay: 0.1s;">
+                    <div class="step-count">02</div>
+                    <h4>{{ t('home.deliver') }}</h4>
+                    <p>{{ t('home.deliver_body') }}</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-card reveal" style="--delay: 0.15s;">
+                    <div class="step-count">03</div>
+                    <h4>{{ t('home.verify') }}</h4>
+                    <p>{{ t('home.verify_body') }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="demo" class="cta-panel">
+        <div class="cta-inner">
+            <div>
+                <h2>{{ t('home.ready') }}</h2>
+                <p class="text-muted">{{ t('home.ready_body') }}</p>
+            </div>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-brand btn-lg">{{ t('home.sign_in') }}</a>
+        </div>
+        <div class="demo-credentials">
+            <div><strong>{{ t('home.demo_delivery') }}:</strong> delivery1 / delivery123</div>
+            <div><strong>{{ t('home.new_delivery') }}:</strong> {{ t('home.create_delivery_account') }}</div>
+        </div>
+    </section>
+</div>
+{% endblock %}

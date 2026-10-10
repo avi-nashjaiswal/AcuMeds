@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Digital Prescription - {{ prescription.prescription_code }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="{{ url_for('doctor_consultation.my_prescriptions') }}" class="text-muted text-decoration-none">
+      <i class="fas fa-arrow-left me-1"></i> Back to My Prescriptions
+    </a>
+    <div class="d-flex gap-2">
+      <button onclick="window.print()" class="btn btn-outline-secondary btn-sm fw-bold">
+        <i class="fas fa-print me-1"></i> Print / Save PDF
+      </button>
+      <form method="POST" action="{{ url_for('doctor_consultation.add_prescription_to_cart', prescription_id=prescription.id) }}">
+        <button type="submit" class="btn btn-primary btn-sm fw-bold">
+          <i class="fas fa-cart-plus me-1"></i> Buy All Prescribed Medicines
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Printable Prescription Sheet Card -->
+  <div class="card border shadow-sm p-4 p-md-5 mx-auto bg-white rounded-3" style="max-width: 860px;">
+    <!-- Clinic Header -->
+    <div class="row pb-4 mb-4 border-bottom border-2 border-primary align-items-center">
+      <div class="col-8">
+        <h3 class="fw-bold text-primary mb-1">{{ doctor.user.full_name or 'Dr. Doctor' }}</h3>
+        <div class="fw-semibold text-dark">{{ doctor.qualification }}</div>
+        <div class="text-muted small">{{ doctor.specialization }} • Reg No: {{ doctor.license_number }}</div>
+        <div class="text-muted small"><i class="fas fa-phone-alt me-1"></i> {{ doctor.user.phone or '+91 98765 43210' }}</div>
+      </div>
+      <div class="col-4 text-end">
+        <h5 class="fw-bold text-dark mb-1">🏥 {{ doctor.clinic_name or 'AcuMeds Health Clinic' }}</h5>
+        <div class="text-muted small">{{ doctor.clinic_address or 'New Delhi, India' }}</div>
+        <span class="badge bg-success-subtle text-success border border-success-subtle mt-2">Verified Telehealth</span>
+      </div>
+    </div>
+
+    <!-- Patient Bar -->
+    <div class="bg-light p-3 rounded-2 mb-4">
+      <div class="row g-2 text-dark small">
+        <div class="col-md-3"><strong>Patient:</strong> {{ prescription.patient_name or (prescription.patient.full_name if prescription.patient else 'Patient') }}</div>
+        <div class="col-md-3"><strong>Age/Gender:</strong> {{ prescription.patient_age or '30' }} yrs / {{ prescription.patient_gender or 'N/A' }}</div>
+        <div class="col-md-3"><strong>Rx Code:</strong> <span class="fw-bold text-primary">{{ prescription.prescription_code }}</span></div>
+        <div class="col-md-3"><strong>Date:</strong> {{ prescription.created_at.strftime('%d %b, %Y') }}</div>
+      </div>
+    </div>
+
+    <!-- Vitals -->
+    {% if prescription.vitals_bp or prescription.vitals_pulse or prescription.vitals_temp or prescription.vitals_weight %}
+      <div class="d-flex gap-4 p-2 px-3 border rounded-2 mb-4 bg-white small text-muted">
+        {% if prescription.vitals_bp %}<div><strong class="text-dark">BP:</strong> {{ prescription.vitals_bp }}</div>{% endif %}
+        {% if prescription.vitals_pulse %}<div><strong class="text-dark">Pulse:</strong> {{ prescription.vitals_pulse }}</div>{% endif %}
+        {% if prescription.vitals_temp %}<div><strong class="text-dark">Temp:</strong> {{ prescription.vitals_temp }}</div>{% endif %}
+        {% if prescription.vitals_weight %}<div><strong class="text-dark">Weight:</strong> {{ prescription.vitals_weight }}</div>{% endif %}
+      </div>
+    {% endif %}
+
+    <!-- Clinical Diagnosis -->
+    <div class="mb-4">
+      <div class="text-muted small fw-bold text-uppercase mb-1">Clinical Diagnosis</div>
+      <h5 class="fw-bold text-dark ps-2 border-start border-3 border-primary mb-0">{{ prescription.diagnosis }}</h5>
+    </div>
+
+    <!-- Rx Sign & Medicines Table -->
+    <div class="fs-1 fw-bold text-primary mb-2" style="font-family: serif;">℞</div>
+    <div class="table-responsive mb-4">
+      <table class="table table-bordered align-middle">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 5%;">#</th>
+            <th style="width: 35%;">Medicine & Strength</th>
+            <th style="width: 20%;">Dosage Frequency</th>
+            <th style="width: 15%;">Timing</th>
+            <th style="width: 15%;">Duration</th>
+            <th style="width: 10%;">Qty</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in prescription.items %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>
+                <strong class="text-dark">{{ item.medicine_name }}</strong>
+                {% if item.dosage %}<span class="text-muted small">({{ item.dosage }})</span>{% endif %}
+                {% if item.instructions %}
+                  <div class="text-primary small fst-italic">• {{ item.instructions }}</div>
+                {% endif %}
+              </td>
+              <td>{{ item.frequency }}</td>
+              <td>{{ item.timing }}</td>
+              <td>{{ item.duration }}</td>
+              <td><strong>{{ item.quantity }}</strong></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Advice & Tests -->
+    <div class="row g-3 mb-4">
+      {% if prescription.general_advice %}
+        <div class="col-md-6">
+          <div class="bg-light p-3 rounded-2 h-100">
+            <div class="text-muted small fw-bold text-uppercase mb-1">General Advice</div>
+            <div class="small text-dark">{{ prescription.general_advice }}</div>
+          </div>
+        </div>
+      {% endif %}
+
+      {% if prescription.tests_recommended %}
+        <div class="col-md-6">
+          <div class="bg-light p-3 rounded-2 h-100">
+            <div class="text-muted small fw-bold text-uppercase mb-1">Recommended Lab Tests</div>
+            <div class="small text-dark">{{ prescription.tests_recommended }}</div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    {% if prescription.follow_up_date %}
+      <div class="mb-4 small">
+        <strong>Follow-up Consultation:</strong> {{ prescription.follow_up_date }}
+      </div>
+    {% endif %}
+
+    <!-- Footer Stamp -->
+    <div class="row pt-4 mt-4 border-top align-items-end">
+      <div class="col-6 text-muted small">
+        <div>Digitally signed and generated on AcuMeds Health Cloud</div>
+        <div>Verification Hash: {{ prescription.prescription_code }}</div>
+      </div>
+      <div class="col-6 text-end">
+        <div class="d-inline-block text-center border-top border-dark pt-2 px-4">
+          <div class="fw-bold text-dark">{{ doctor.user.full_name or 'Dr. Doctor' }}</div>
+          <div class="text-muted small">{{ doctor.qualification }}</div>
+          <div class="text-muted small">Reg: {{ doctor.license_number }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

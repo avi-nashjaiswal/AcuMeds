@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}My Addresses{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">My Addresses</h1>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('main_bp_final_unique.add_address') }}">
+            <div class="mb-2"><input name="title" class="form-control" placeholder="Label (Home, Work)"></div>
+            <div class="mb-2"><input name="recipient" class="form-control" placeholder="Recipient name"></div>
+            <div class="mb-2"><input name="phone" class="form-control" placeholder="Phone"></div>
+            <div class="mb-2"><textarea name="address_line" class="form-control" placeholder="Address"></textarea></div>
+            <div class="row">
+                <div class="col"><input name="city" class="form-control" placeholder="City"></div>
+                <div class="col"><input name="postal_code" class="form-control" placeholder="Postal Code"></div>
+            </div>
+            <button class="btn btn-primary mt-2">Add Address</button>
+        </form>
+    </div>
+</div>
+
+<table class="table">
+    <thead><tr><th>Label</th><th>Recipient</th><th>Phone</th><th>Address</th><th></th></tr></thead>
+    <tbody>
+        {% for a in addresses %}
+        <tr>
+            <td>{{ a.title }}</td>
+            <td>{{ a.recipient }}</td>
+            <td>{{ a.phone }}</td>
+            <td>{{ a.address_line }}<br>{{ a.city }} {{ a.postal_code }}</td>
+            <td>
+                <form method="POST" action="{{ url_for('main_bp_final_unique.delete_address', addr_id=a.id) }}" onsubmit="return confirm('Delete address?')">
+                    <button class="btn btn-sm btn-danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

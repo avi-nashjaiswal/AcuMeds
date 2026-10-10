@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - AcuMeds{% endblock %}
+
+{% block content %}
+<div class="page-header mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
+            <p class="text-muted">System Overview & Quick Actions</p>
+        </div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#appLinksModal">
+            <i class="fas fa-link"></i> All Apps
+        </button>
+    </div>
+</div>
+
+<!-- Statistics Row -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Shopkeepers</h6>
+                <div class="stat-value">{{ total_shopkeepers }}</div>
+                <small class="text-success">{{ verified_shopkeepers }} verified</small>
+                <br/>
+                <small class="text-warning">{{ pending_shopkeepers }} pending</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card success">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Medicines</h6>
+                <div class="stat-value">{{ total_medicines }}</div>
+                <small>Total products</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card warning">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Orders</h6>
+                <div class="stat-value">{{ total_orders }}</div>
+                <small>Total transactions</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card danger">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Revenue</h6>
+                <div class="stat-value">₹{{ "%.0f"|format(total_revenue) }}</div>
+                <small>Total sales</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+    </div>
+    <div class="card-body">
+        <a href="{{ url_for('dashboard.shopkeepers') }}" class="btn btn-outline-primary me-2">
+            <i class="fas fa-store"></i> Manage Shopkeepers
+        </a>
+        <a href="{{ url_for('dashboard.medicines') }}" class="btn btn-outline-success me-2">
+            <i class="fas fa-pills"></i> Manage Medicines
+        </a>
+        <a href="{{ url_for('dashboard.orders') }}" class="btn btn-outline-warning me-2">
+            <i class="fas fa-box"></i> View Orders
+        </a>
+        <a href="{{ url_for('dashboard.users') }}" class="btn btn-outline-info me-2">
+            <i class="fas fa-users"></i> Manage Users
+        </a>
+        <a href="{{ url_for('dashboard.analytics') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-chart-bar"></i> Analytics
+        </a>
+    </div>
+</div>
+
+<!-- Pending Shopkeepers Alert -->
+{% if pending_shopkeepers %}
+<div class="alert alert-warning" role="alert">
+    <i class="fas fa-hourglass-end"></i>
+    <strong>{{ pending_shopkeepers }} Shopkeeper(s) Pending Verification!</strong>
+    <a href="{{ url_for('dashboard.shopkeepers') }}" class="btn btn-sm btn-warning ms-2">Review Now</a>
+</div>
+{% endif %}
+
+<div class="row mt-4">
+    <!-- Pending Shopkeepers Card -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-clock"></i> Pending Shopkeepers ({{ pending_shopkeepers }})</h5>
+            </div>
+            <div class="card-body">
+                {% if pending_shops %}
+                    <div class="list-group list-group-flush">
+                        {% for shop in pending_shops[:5] %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ shop.shop_name }}</h6>
+                                <small class="text-muted">{{ shop.user.email }}</small>
+                            </div>
+                            <a href="{{ url_for('dashboard.shopkeepers') }}" class="btn btn-sm btn-success">
+                                Verify
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if pending_shops|length > 5 %}
+                    <div class="mt-3">
+                        <a href="{{ url_for('dashboard.shopkeepers') }}" class="btn btn-sm btn-outline-primary w-100">
+                            View All {{ pending_shops|length }}
+                        </a>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <p class="text-muted">No pending shopkeepers</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Orders -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history"></i> Recent Orders</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders[:5] %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.user.full_name or order.user.username }}</td>
+                            <td>₹{{ order.total_amount }}</td>
+                            <td>
+                                <span class="badge bg-{% if order.status == 'Pending' %}warning{% elif order.status == 'Delivered' %}success{% elif order.status == 'Cancelled' %}danger{% endif %}">
+                                    {{ order.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if recent_orders %}
+            <div class="card-body pt-0">
+                <a href="{{ url_for('dashboard.orders') }}" class="btn btn-sm btn-outline-primary w-100">View All Orders</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- All Apps Modal -->
+<div class="modal fade" id="appLinksModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-link"></i> All Applications</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="list-group">
+                    <a href="http://localhost:5000" target="_blank" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100">
+                            <h6 class="mb-1"><i class="fas fa-hospital"></i> Pharmacy Portal (Port 5000)</h6>
+                            <small class="ms-auto">Customer</small>
+                        </div>
+                        <small class="text-muted">Browse & order medicines</small>
+                    </a>
+                    <a href="http://localhost:5001" target="_blank" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100">
+                            <h6 class="mb-1"><i class="fas fa-store"></i> Shopkeeper Portal (Port 5001)</h6>
+                            <small class="ms-auto">Vendor</small>
+                        </div>
+                        <small class="text-muted">Manage shop & inventory</small>
+                    </a>
+                    <a href="http://localhost:5002" target="_blank" class="list-group-item list-group-item-action active">
+                        <div class="d-flex w-100">
+                            <h6 class="mb-1"><i class="fas fa-shield-alt"></i> Admin Portal (Port 5002)</h6>
+                            <small class="ms-auto">Current</small>
+                        </div>
+                        <small class="text-muted">Manage everything</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

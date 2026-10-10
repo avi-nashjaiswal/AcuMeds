@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Consultation Payment Receipt - AcuMeds{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4" id="printableReceipt">
+            <!-- Header -->
+            <div class="card-header bg-gradient bg-success text-white p-4 text-center">
+                <div class="bg-white text-success rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 70px; height: 70px;">
+                    <i class="fas fa-check-circle fa-2x"></i>
+                </div>
+                <h3 class="fw-bold mb-1">Consultation Payment Confirmed</h3>
+                <p class="text-white-50 mb-0">Your doctor appointment has been successfully scheduled & paid</p>
+            </div>
+
+            <div class="card-body p-4 p-md-5">
+                <!-- Video Call Action Box (If Online Video Call) -->
+                {% if appointment.consultation_type == 'Online Video' and appointment.meeting_link %}
+                <div class="card border-0 bg-primary bg-opacity-10 rounded-4 p-4 mb-4 text-center">
+                    <span class="badge bg-primary rounded-pill px-3 py-2 fw-bold mb-2 align-self-center">
+                        <i class="fas fa-video me-1"></i> Live Online Consultation Room
+                    </span>
+                    <h4 class="fw-bold text-dark mb-2">Your Video Consultation is Ready</h4>
+                    <p class="text-muted small mb-3">
+                        Doctor <strong>{{ doctor.user.full_name or 'Medical Specialist' }}</strong> will join the video room at your scheduled slot: <strong>{{ appointment.appointment_date }} at {{ appointment.appointment_time }}</strong>.
+                    </p>
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <a href="{{ url_for('doctor_consultation.appointment_call_room', appointment_id=appointment.id) }}" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow">
+                            <i class="fas fa-video me-2"></i> Join Video Consultation Room
+                        </a>
+                        {% set dphone = doctor.user.phone if (doctor.user and doctor.user.phone) else '+91 98765 43210' %}
+                        {% set dphone_clean = dphone|replace(' ', '')|replace('-', '')|replace('+', '') %}
+                        {% if dphone_clean|length == 10 %}{% set dphone_clean = '91' ~ dphone_clean %}{% endif %}
+                        <a href="https://wa.me/{{ dphone_clean }}?text=Hello%20Dr.%20{{ (doctor.user.full_name or 'Doctor')|urlencode }},%20I%20am%20ready%20for%20my%20consultation%20(Appointment%20%23{{ appointment.id }})." target="_blank" class="btn btn-outline-success btn-lg rounded-pill px-4 fw-bold shadow-sm">
+                            <i class="fab fa-whatsapp me-2"></i> WhatsApp Doctor
+                        </a>
+                    </div>
+                    <small class="text-muted mt-2 d-block">Integrated In-App WebRTC &bull; No third-party account or installation required</small>
+                </div>
+                {% endif %}
+
+                <!-- Official Invoice / Receipt Table -->
+                <div class="border rounded-4 p-4 mb-4 bg-white shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3 flex-wrap gap-2">
+                        <div>
+                            <span class="text-muted small text-uppercase fw-bold">Official Invoice Number</span>
+                            <div class="fs-5 fw-bold text-dark">{{ appointment.invoice_number or ('INV-DOC-' ~ appointment.id) }}</div>
+                        </div>
+                        <div class="text-md-end">
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill fw-bold">
+                                Status: {{ appointment.payment_status }}
+                            </span>
+                            <div class="small text-muted mt-1">Txn ID: {{ appointment.transaction_id or ('TXN-DOC-' ~ appointment.id) }}</div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 small text-secondary mb-4">
+                        <div class="col-sm-6">
+                            <strong>Patient Name:</strong> {{ appointment.patient_name }} ({{ appointment.patient_gender }}, {{ appointment.patient_age }} yrs)<br>
+                            <strong>Patient Contact:</strong> {{ appointment.patient_phone or 'Registered Profile' }}<br>
+                            <strong>Symptoms:</strong> {{ appointment.symptoms }}
+                        </div>
+                        <div class="col-sm-6 text-sm-end">
+                            <strong>Doctor:</strong> {{ doctor.user.full_name }} ({{ doctor.specialization }})<br>
+                            <strong>Consultation Date:</strong> {{ appointment.appointment_date }} at {{ appointment.appointment_time }}<br>
+                            <strong>Payment Method:</strong> {{ appointment.payment_method or 'Instant Pay' }} (Ref: {{ appointment.payment_reference or 'Direct' }})
+                        </div>
+                    </div>
+
+                    <!-- Fee Matrix -->
+                    <table class="table table-bordered align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Item Description</th>
+                                <th class="text-center">Mode</th>
+                                <th class="text-end">Amount (INR)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <strong>Doctor Consultation Fee</strong>
+                                    <div class="text-muted small">Professional medical advice & prescription issuance</div>
+                                </td>
+                                <td class="text-center"><span class="badge bg-light text-dark border">{{ appointment.consultation_type }}</span></td>
+                                <td class="text-end fw-bold">₹{{ "%.2f"|format(appointment.consultation_fee) }}</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Digital e-Prescription (Rx) & Diagnostics Storage</strong>
+                                </td>
+                                <td class="text-center"><span class="badge bg-success bg-opacity-10 text-success">Included</span></td>
+                                <td class="text-end text-success fw-bold">₹0.00</td>
+                            </tr>
+                            <tr class="table-light">
+                                <td colspan="2" class="text-end fw-bold">Total Paid:</td>
+                                <td class="text-end fs-5 fw-bold text-success">₹{{ "%.2f"|format(appointment.consultation_fee) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 d-print-none">
+                    <a href="{{ url_for('doctor_consultation.my_appointments') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="fas fa-calendar-check me-1"></i> View All Appointments
+                    </a>
+                    <div class="d-flex gap-2">
+                        <button type="button" onclick="window.print();" class="btn btn-outline-primary rounded-pill px-4 fw-bold">
+                            <i class="fas fa-print me-1"></i> Print / Save Receipt
+                        </button>
+                        <a href="{{ url_for('main_bp_final_unique.dashboard') }}" class="btn btn-success rounded-pill px-4 fw-bold">
+                            <i class="fas fa-home me-1"></i> Go to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .d-print-none, nav, footer, header, .navbar {
+        display: none !important;
+    }
+    #printableReceipt {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+}
+</style>
+{% endblock %}

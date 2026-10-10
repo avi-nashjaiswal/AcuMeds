@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('title.register') }} - {{ t('app.name') }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4 p-md-5">
+                <h3 class="card-title text-center mb-4">
+                    <i class="fas fa-user-plus me-2"></i>{{ t('auth.create_title') }}
+                </h3>
+                <form method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">{{ t('auth.full_name') }}</label>
+                            <input type="text" name="full_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ t('auth.age') }}</label>
+                            <input type="number" name="age" class="form-control" min="1" required>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">{{ t('auth.gender') }}</label>
+                            <select name="gender" class="form-select" required>
+                                <option value="">{{ t('auth.select') }}</option>
+                                <option value="Male">{{ t('auth.male') }}</option>
+                                <option value="Female">{{ t('auth.female') }}</option>
+                                <option value="Other">{{ t('auth.other') }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ t('auth.phone') }}</label>
+                            <input type="text" name="phone" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ t('auth.email') }}</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{{ t('auth.city') }}</label>
+                            <input type="text" name="city" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ t('auth.password') }}</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ t('auth.confirm_password') }}</label>
+                            <input type="password" name="confirm_password" class="form-control" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mt-4">{{ t('auth.create_account_button') }}</button>
+                </form>
+                <div class="alert alert-warning mt-3 mb-0">
+                    {{ t('auth.approval_note') }}
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('auth.login') }}">{{ t('auth.already_account') }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

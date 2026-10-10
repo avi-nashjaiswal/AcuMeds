@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('title.dashboard') }} - {{ t('app.name') }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>{{ t('dashboard.welcome', name=(current_user.full_name or current_user.username) if current_user.is_authenticated else 'User') }} 👋</h1>
+    </div>
+    <div class="col-md-4 text-end">
+<a href="{{ url_for('main_bp_final_unique.profile') }}" class="btn btn-outline-primary">{{ t('dashboard.edit_profile') }}</a>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">{{ cart_count }}</h3>
+                <p class="card-text">{{ t('dashboard.items_in_cart') }}</p>
+                <a href="{{ url_for('cart.view_cart') }}" class="btn btn-sm btn-primary">{{ t('dashboard.view') }}</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success">{{ total_orders }}</h3>
+                <p class="card-text">{{ t('dashboard.total_orders') }}</p>
+                <a href="{{ url_for('order.order_history') }}" class="btn btn-sm btn-success">{{ t('dashboard.view_all') }}</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-info">{{ recent_recommendations|length }}</h3>
+                <p class="card-text">{{ t('dashboard.symptom_checks') }}</p>
+                <a href="{{ url_for('recommendation.recommendation_history') }}" class="btn btn-sm btn-info">{{ t('dashboard.view_all') }}</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-warning">🤖</h3>
+                <p class="card-text">{{ t('dashboard.ai_recommendations') }}</p>
+                <a href="{{ url_for('recommendation.recommendation_form') }}" class="btn btn-sm btn-warning">{{ t('dashboard.try_now') }}</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Orders -->
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">{{ t('dashboard.recent_orders') }}</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_orders %}
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>{{ t('dashboard.order_id') }}</th>
+                                <th>{{ t('dashboard.date') }}</th>
+                                <th>{{ t('dashboard.amount') }}</th>
+                                <th>{{ t('dashboard.status') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                                <tr>
+                                    <td><a href="{{ url_for('order.view_order', order_id=order.id) }}">#{{ order.id }}</a></td>
+                                    <td>{{ order.order_date.strftime('%m/%d/%Y') }}</td>
+                                    <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if order.status == 'Delivered' %}success{% elif order.status == 'Shipped' %}info{% elif order.status == 'Confirmed' %}primary{% else %}warning{% endif %}">
+                                            {{ order.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-muted">{{ t('dashboard.no_orders') }} <a href="{{ url_for('medicine.list_medicines') }}">{{ t('messages.start_shopping') }}</a></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Recommendations -->
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">{{ t('dashboard.recent_symptom_checks') }}</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_recommendations %}
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>{{ t('dashboard.symptoms') }}</th>
+                                <th>{{ t('dashboard.date') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rec in recent_recommendations %}
+                                <tr>
+                                    <td>{{ rec.symptoms[:30] }}...</td>
+                                    <td>{{ rec.recommendation_date.strftime('%m/%d/%Y') }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-muted">{{ t('dashboard.no_recommendations') }} <a href="{{ url_for('recommendation.recommendation_form') }}">{{ t('messages.try_ai_checker') }}</a></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Personalized Recommendations -->
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">🎯 {{ t('dashboard.recent_recommendations') }}</h5>
+            </div>
+            <div class="card-body">
+                <div id="personalized-loading" class="text-center py-4">
+                    <div class="spinner-border spinner-border-sm text-info" role="status">
+                        <span class="visually-hidden">{{ t('dashboard.loading') }}</span>
+                    </div>
+                </div>
+                <div id="personalized-recommendations" style="display: none;">
+                    <div class="row" id="recommendations-container"></div>
+                </div>
+                <div id="personalized-empty" style="display: none;" class="text-center text-muted py-4">
+                    <p>{{ t('dashboard.recommendation_empty') }}</p>
+                    <a href="{{ url_for('medicine.list_medicines') }}" class="btn btn-sm btn-info">{{ t('messages.browse_medicines') }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <a href="{{ url_for('medicine.list_medicines') }}" class="btn btn-primary me-2">{{ t('messages.browse_medicines') }}</a>
+        <a href="{{ url_for('recommendation.recommendation_form') }}" class="btn btn-success">{{ t('messages.try_ai_checker') }}</a>
+    </div>
+</div>
+
+<script>
+// Load personalized recommendations
+async function loadPersonalizedRecommendations() {
+    const loadingErrorMessage = {{ t('messages.error_loading_recommendations')|tojson }};
+    try {
+        const response = await fetch('/recommendations/api/personalized');
+        const data = await response.json();
+        
+        const loadingDiv = document.getElementById('personalized-loading');
+        const recDiv = document.getElementById('personalized-recommendations');
+        const emptyDiv = document.getElementById('personalized-empty');
+        
+        if (data.success && data.recommendations && data.recommendations.length > 0) {
+            // Show recommendations
+            const container = document.getElementById('recommendations-container');
+            container.innerHTML = '';
+            
+            data.recommendations.forEach(rec => {
+                const col = document.createElement('div');
+                col.className = 'col-md-4 col-lg-2 mb-3';
+                col.innerHTML = `
+                    <div class="card h-100 text-center">
+                        <img src="/static/${rec.image}" class="card-img-top" alt="${rec.name}" style="height: 150px; object-fit: cover;">
+                        <div class="card-body">
+                            <h6 class="card-title">${rec.name}</h6>
+                            <small class="text-muted">${rec.category}</small>
+                            <p class="card-text text-primary fw-bold mt-2">₹${rec.price.toFixed(2)}</p>
+                            <small class="text-muted d-block">${rec.reason}</small>
+                            <a href="/medicines/${rec.id}" class="btn btn-sm btn-primary mt-2">View</a>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(col);
+            });
+            
+            loadingDiv.style.display = 'none';
+            recDiv.style.display = 'block';
+            emptyDiv.style.display = 'none';
+        } else {
+            // No recommendations
+            loadingDiv.style.display = 'none';
+            recDiv.style.display = 'none';
+            emptyDiv.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading personalized recommendations:', error);
+        document.getElementById('personalized-loading').innerHTML = 
+            '<p class="text-danger">' + loadingErrorMessage + '</p>';
+    }
+}
+
+// Load recommendations on page load
+document.addEventListener('DOMContentLoaded', loadPersonalizedRecommendations);
+</script>
+{% endblock %}

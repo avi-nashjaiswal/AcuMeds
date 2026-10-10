@@ -1,0 +1,372 @@
+{% extends "base.html" %}
+
+{% block title %}Order Details - AcuMeds{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('main_bp_final_unique.dashboard') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('order.order_history') }}">Orders</a></li>
+        <li class="breadcrumb-item active">Order #{{ order.id }}</li>
+    </ol>
+</nav>
+
+<h1 class="mb-4">Order #{{ order.id }}</h1>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Order Date</h5>
+                <p class="card-text">{{ order.order_date.strftime('%m/%d/%Y') }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Status</h5>
+                <p class="card-text">
+                    <span class="badge bg-{% if order.status == 'Delivered' %}success{% elif order.status == 'Shipped' %}info{% elif order.status == 'Confirmed' %}primary{% else %}warning{% endif %} p-2">
+                        {{ order.status }}
+                    </span>
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Shop</h5>
+                <p class="card-text">
+                    {% if order.shopkeeper %}
+                        <strong>{{ order.shopkeeper.shop_name }}</strong><br>
+                        <small class="text-muted">{{ order.shopkeeper.city }}</small>
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Payment</h5>
+                <p class="card-text">
+                    <div>{{ order.payment_method or 'Cash on Delivery' }}</div>
+                    <div>
+                        <span class="badge bg-{% if order.payment_status == 'Paid' %}success{% elif order.payment_status == 'Failed' %}danger{% elif order.payment_status == 'Refunded' %}danger{% else %}secondary{% endif %} p-2">
+                            {{ order.payment_status or 'Pending' }}
+                        </span>
+                    </div>
+                    {% if order.payment_reference %}
+                    <div class="text-muted small mt-2">UTR / Transaction ID: {{ order.payment_reference }}</div>
+                    {% endif %}
+                    {% if order.refund_request_status == 'Requested' %}
+                    <div class="mt-2"><span class="badge bg-warning text-dark">Refund Requested</span></div>
+                    {% elif order.refund_status == 'Refunded' %}
+                    <div class="mt-2"><span class="badge bg-danger">Refunded</span></div>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% if order.delivery %}
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Delivery</h5>
+                <div class="mb-1">
+                    <span class="badge bg-{% if order.delivery.status == 'Delivered' %}success{% elif order.delivery.status == 'Out for Delivery' %}info{% elif order.delivery.status == 'Picked Up' %}primary{% else %}secondary{% endif %} p-2">
+                        {{ order.delivery.status }}
+                    </span>
+                </div>
+                <div class="small text-muted">
+                    {{ order.delivery.delivery_agent.user.full_name | default(order.delivery.delivery_agent.user.username) }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Estimated Delivery</h5>
+                <p class="card-text">{{ order.estimated_delivery_date.strftime('%m/%d/%Y') if order.estimated_delivery_date else 'N/A' }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Total Amount</h5>
+                <p class="card-text text-success">₹{{ "%.2f"|format(order.total_amount) }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% set can_view_customer_otp = (not current_user.is_authenticated) or (current_user.id == order.user_id) %}
+{% if order.delivery and order.delivery.otp_code and order.delivery.status != 'Delivered' and can_view_customer_otp %}
+<div class="alert alert-warning">
+    Delivery agent ke Verify OTP form me enter karne ke liye ye OTP share karein: <strong>{{ order.delivery.otp_code }}</strong>
+</div>
+{% elif not order.delivery and order.status != 'Delivered' and can_view_customer_otp %}
+<div class="alert alert-info">
+    Delivery OTP tab dikhega jab admin delivery agent assign karega.
+</div>
+{% endif %}
+
+{% if current_user.is_authenticated and current_user.id == order.user_id %}
+<div class="card shadow-sm mb-4" id="refund-request">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Refund Request</h5>
+    </div>
+    <div class="card-body">
+        {% if order.refund_status == 'Refunded' %}
+            <div class="alert alert-success mb-0">
+                <strong>Refund processed.</strong>
+                <div class="mt-2">Amount: ₹{{ '%.2f'|format(order.refund_amount or 0) }}</div>
+                {% if order.refund_reason %}
+                    <div>Reason: {{ order.refund_reason }}</div>
+                {% endif %}
+                {% if order.refund_processed_at %}
+                    <div>Processed at: {{ order.refund_processed_at.strftime('%d-%m-%Y %H:%M') }}</div>
+                {% endif %}
+            </div>
+        {% elif order.refund_request_status == 'Requested' %}
+            <div class="alert alert-warning mb-0">
+                <strong>Your refund request is pending review.</strong>
+                {% if order.refund_request_reason %}
+                    <div class="mt-2">Reason: {{ order.refund_request_reason }}</div>
+                {% endif %}
+                {% if order.refund_requested_at %}
+                    <div>Requested at: {{ order.refund_requested_at.strftime('%d-%m-%Y %H:%M') }}</div>
+                {% endif %}
+            </div>
+        {% elif can_request_refund %}
+            <p class="text-muted mb-3">You can request a refund for this paid order. Admin will review the request.</p>
+            <form method="POST" action="{{ url_for('order.request_refund', order_id=order.id) }}">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Refund Amount</label>
+                        <input type="number" class="form-control" name="refund_request_amount" step="0.01" min="0.01" max="{{ order.total_amount }}" value="{{ order.total_amount }}" required>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">Reason for Refund</label>
+                        <input type="text" class="form-control" name="refund_request_reason" placeholder="Tell us why you need a refund" required>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end mt-3">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-undo"></i> Request Refund
+                    </button>
+                </div>
+            </form>
+        {% else %}
+            <p class="text-muted mb-0">Refund requests are available only for paid orders.</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Order Items</h5>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Medicine</th>
+                    <th>Category</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.order_items %}
+                <tr>
+                    <td>{{ item.medicine.name }}</td>
+                    <td>{{ item.medicine.category }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₹{{ "%.2f"|format(item.price_at_purchase) }}</td>
+                    <td>₹{{ "%.2f"|format(item.price_at_purchase * item.quantity) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% set can_rate = current_user.is_authenticated and order.user_id == current_user.id and (order.status == 'Delivered' or order.payment_status == 'Paid') %}
+
+{% if can_rate %}
+<div class="card shadow-sm mb-4" id="rate-medicines">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Rate Your Medicines</h5>
+    </div>
+    <div class="card-body">
+        {% for item in order.order_items %}
+        {% set existing_rating = ratings_by_item.get(item.id) %}
+        <div class="border rounded p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{ item.medicine.name }}</strong>
+                    <div class="text-muted small">{{ item.medicine.category }}</div>
+                </div>
+                {% if existing_rating %}
+                    <span class="badge bg-success">Rated {{ existing_rating.rating }}/5</span>
+                {% else %}
+                    <span class="badge bg-secondary">Not rated</span>
+                {% endif %}
+            </div>
+            {% if existing_rating %}
+            <div class="mt-3">
+                <div class="star-display" aria-label="Rated {{ existing_rating.rating }} out of 5">
+                    {% for i in range(1, 6) %}
+                        {% if i <= existing_rating.rating %}
+                            <i class="fas fa-star"></i>
+                        {% else %}
+                            <i class="far fa-star"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% if existing_rating.review_text %}
+                <div class="text-muted mt-2">{{ existing_rating.review_text }}</div>
+                {% endif %}
+                <div class="text-muted small mt-2">Rating submitted.</div>
+            </div>
+            {% else %}
+            <form method="POST" action="{{ url_for('order.rate_order_item', order_id=order.id) }}" class="mt-3">
+                <input type="hidden" name="order_item_id" value="{{ item.id }}">
+                <div class="row g-3 align-items-start">
+                    <div class="col-md-3">
+                        <label class="form-label">Your rating <span class="text-danger">*</span></label>
+                        <div class="star-rating" role="radiogroup" aria-label="Rate this medicine">
+                            {% for i in range(5, 0, -1) %}
+                                <input type="radio" id="star-{{ item.id }}-{{ i }}" name="rating" value="{{ i }}" required>
+                                <label for="star-{{ item.id }}-{{ i }}" title="{{ i }} star{% if i > 1 %}s{% endif %}">
+                                    <i class="fas fa-star"></i>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <label class="form-label">Review (optional)</label>
+                        <textarea class="form-control" name="review_text" rows="2" maxlength="500"></textarea>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">Submit</button>
+                    </div>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+{% if order.status != 'Delivered' and order.payment_status != 'Paid' %}
+<div class="alert alert-info">
+    Ratings will be available after payment or delivery.
+</div>
+{% endif %}
+{% endif %}
+
+<style>
+.star-rating {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    gap: 6px;
+    padding: 2px 0;
+}
+
+.star-rating input {
+    display: none;
+}
+
+.star-rating label {
+    color: #111827;
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+    margin: 0;
+    transition: color 0.15s ease;
+}
+
+.star-rating input:checked ~ label,
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+    color: #f59e0b;
+}
+
+.star-rating label i {
+    pointer-events: none;
+}
+
+.star-display {
+    display: inline-flex;
+    gap: 6px;
+    color: #f59e0b;
+    font-size: 22px;
+    line-height: 1;
+}
+
+.star-display .far.fa-star {
+    color: #111827;
+}
+</style>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Shipping Address</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>{{ "User" }}</strong></p>
+                <p>{{ "" }}</p>
+                <p>{{ "" }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Order Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Subtotal:</span>
+                    <span>₹{{ "%.2f"|format(order.total_amount) }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Shipping:</span>
+                    <span>Free</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Tax:</span>
+                    <span>₹{{ "%.2f"|format(order.total_amount * 0.05) }}</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <strong>Total:</strong>
+                    <strong class="text-success">₹{{ "%.2f"|format(order.total_amount * 1.05) }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{{ url_for('order.order_history') }}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left"></i> Back to Orders
+    </a>
+    <a href="{{ url_for('medicine.list_medicines') }}" class="btn btn-primary">
+        <i class="fas fa-pills"></i> Continue Shopping
+    </a>
+</div>
+{% endblock %}

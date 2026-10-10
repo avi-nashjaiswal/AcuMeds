@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Ratings - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="page-header mt-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-star"></i> Ratings</h1>
+            <p class="text-muted">All customer ratings and reviews</p>
+        </div>
+        <div>
+            <span class="badge bg-primary me-2">
+                <i class="fas fa-list"></i> {{ total_ratings }} Total
+            </span>
+            <span class="badge bg-warning text-dark">
+                <i class="fas fa-star"></i> Avg {{ "%.2f"|format(avg_rating) }}
+            </span>
+        </div>
+    </div>
+</div>
+
+{% if ratings %}
+<div class="table-responsive card">
+    <table class="table table-hover mb-0">
+        <thead class="table-light">
+            <tr>
+                <th width="10%">Rating</th>
+                <th width="20%">Medicine</th>
+                <th width="20%">User</th>
+                <th width="15%">Order</th>
+                <th width="25%">Review</th>
+                <th width="10%">Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rating in ratings %}
+            <tr>
+                <td>
+                    <div class="rating-stars" aria-label="{{ rating.rating }} out of 5">
+                        {% for i in range(1, 6) %}
+                            {% if i <= rating.rating %}
+                                <i class="fas fa-star"></i>
+                            {% else %}
+                                <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </td>
+                <td>
+                    {{ rating.medicine.name if rating.medicine else 'Unknown' }}
+                </td>
+                <td>
+                    {% if rating.user %}
+                        {{ rating.user.full_name or rating.user.username }}
+                        <div class="text-muted small">{{ rating.user.email }}</div>
+                    {% else %}
+                        <span class="text-muted">Unknown</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if rating.order_item and rating.order_item.order %}
+                        #{{ rating.order_item.order.id }}
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if rating.review_text %}
+                        {{ rating.review_text }}
+                    {% else %}
+                        <span class="text-muted">No review</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {{ rating.created_at.strftime('%d-%m-%Y') if rating.created_at else '' }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">
+    No ratings yet.
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.rating-stars {
+    color: #f59e0b;
+    display: inline-flex;
+    gap: 4px;
+}
+
+.rating-stars .far.fa-star {
+    color: #111827;
+}
+</style>
+{% endblock %}

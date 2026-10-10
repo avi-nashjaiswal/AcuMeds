@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('dashboard.title') }} - {{ t('app.name') }}{% endblock %}
+
+{% block content %}
+{% set pending_action_count = deliveries | selectattr('status', 'in', ['Assigned', 'Picked Up', 'Out for Delivery']) | list | length %}
+{% set status_labels = {
+    'Assigned': t('dashboard.status_assigned'),
+    'Picked Up': t('dashboard.status_picked_up'),
+    'Out for Delivery': t('dashboard.status_out_for_delivery'),
+    'Delivered': t('dashboard.status_delivered'),
+    'Failed': t('dashboard.status_failed')
+} %}
+{% set status_classes = {
+    'Assigned': 'secondary',
+    'Picked Up': 'primary',
+    'Out for Delivery': 'info',
+    'Delivered': 'success',
+    'Failed': 'danger'
+} %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+    <div>
+        <p class="eyebrow mb-1">{{ t('dashboard.title') }}</p>
+        <h1 class="mb-0"><i class="fas fa-truck me-2"></i>{{ t('dashboard.title') }}</h1>
+    </div>
+    <div class="text-muted small">
+        {{ t('dashboard.total_earnings') }}: INR {{ "%.2f"|format(total_earnings) }}
+    </div>
+</div>
+
+{% if pending_action_count > 0 %}
+<div class="alert alert-warning d-flex flex-wrap justify-content-between align-items-center" role="alert">
+    <div>
+        <i class="fas fa-bell me-2"></i>
+        <strong>{{ t('dashboard.reminder') }}:</strong> {{ t('dashboard.pending_message', count=pending_action_count) }}
+    </div>
+    <button id="enable-browser-notification" type="button" class="btn btn-sm btn-dark mt-2 mt-md-0">
+        {{ t('dashboard.enable_notification') }}
+    </button>
+</div>
+{% endif %}
+
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-primary h-100">
+            <div class="card-body">
+                <div class="text-primary text-uppercase small">{{ t('dashboard.assigned') }}</div>
+                <div class="h4 mb-0">{{ assigned_count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-info h-100">
+            <div class="card-body">
+                <div class="text-info text-uppercase small">{{ t('dashboard.in_transit') }}</div>
+                <div class="h4 mb-0">{{ in_transit_count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-success h-100">
+            <div class="card-body">
+                <div class="text-success text-uppercase small">{{ t('dashboard.delivered') }}</div>
+                <div class="h4 mb-0">{{ delivered_count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-warning h-100">
+            <div class="card-body">
+                <div class="text-warning text-uppercase small">{{ t('dashboard.weekly_earnings') }}</div>
+                <div class="h4 mb-0">INR {{ "%.2f"|format(week_earnings) }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-secondary text-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <h5 class="mb-0">{{ t('dashboard.assigned_deliveries') }}</h5>
+        <span class="small">{{ t('dashboard.pending_cash') }}: INR {{ "%.2f"|format(pending_cash) }}</span>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-light border mb-3 py-2">
+            <strong>{{ t('dashboard.quick_map') }}</strong> {{ t('dashboard.quick_map_body') }}
+            <div class="small text-muted mt-1"><i class="fas fa-sync-alt me-1"></i>{{ t('dashboard.refresh_note') }}</div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>{{ t('dashboard.order') }}</th>
+                        <th>{{ t('dashboard.customer') }}</th>
+                        <th>{{ t('dashboard.status') }}</th>
+                        <th>{{ t('dashboard.cash') }}</th>
+                        <th>{{ t('dashboard.assigned_at') }}</th>
+                        <th>{{ t('dashboard.route_actions') }}</th>
+                        <th>{{ t('dashboard.action') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for delivery in deliveries %}
+                    <tr data-delivery-id="{{ delivery.id }}" data-delivery-status="{{ delivery.status }}">
+                        <td><strong>#{{ delivery.order.id }}</strong></td>
+                        <td>{{ delivery.order.user.full_name or delivery.order.user.username }}</td>
+                        <td>
+                            <span class="badge bg-{{ status_classes.get(delivery.status, 'secondary') }}">
+                                {{ status_labels.get(delivery.status, delivery.status) }}
+                            </span>
+                        </td>
+                        <td>INR {{ "%.2f"|format(delivery.cash_to_collect or 0) }}</td>
+                        <td>{{ delivery.assigned_at.strftime('%d/%m/%Y %H:%M') if delivery.assigned_at else '-' }}</td>
+                        <td>
+                            {% if delivery.status == 'Delivered' %}
+                                <span class="text-muted small">{{ t('dashboard.status_delivered') }}</span>
+                            {% elif delivery.directions_url %}
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a href="{{ delivery.directions_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-success">{{ t('dashboard.navigate') }}</a>
+                                </div>
+                                <div class="small text-muted mt-1">{{ t('dashboard.navigate_note') }}</div>
+                            {% else %}
+                                <span class="text-muted small">{{ t('dashboard.location_unavailable') }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('delivery.delivery_detail', delivery_id=delivery.id) }}" class="btn btn-sm btn-outline-primary">{{ t('dashboard.view') }}</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const AUTO_REFRESH_MS = 30000;
+        const notificationTitle = {{ t('dashboard.notification_title')|tojson }};
+        const notificationSingleText = {{ t('dashboard.notification_single')|tojson }};
+        const notificationPluralTemplate = {{ t('dashboard.notification_plural')|tojson }};
+
+        const trackedStatuses = ['Assigned', 'Picked Up', 'Out for Delivery'];
+        const pendingRows = Array.from(document.querySelectorAll('tr[data-delivery-id]')).filter(function (row) {
+            return trackedStatuses.includes(row.dataset.deliveryStatus);
+        });
+
+        const pendingIds = pendingRows.map(function (row) {
+            return row.dataset.deliveryId;
+        });
+
+        const reminderText = pendingIds.length === 1
+            ? notificationSingleText
+            : notificationPluralTemplate.replace('{count}', pendingIds.length);
+
+        const storageKey = 'delivery_dashboard_notified_ids';
+        const previousIds = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        const newPendingIds = pendingIds.filter(function (id) {
+            return !previousIds.includes(id);
+        });
+
+        const saveIds = function () {
+            localStorage.setItem(storageKey, JSON.stringify(pendingIds));
+        };
+
+        const triggerBrowserNotification = function () {
+            if (!('Notification' in window) || pendingIds.length === 0) {
+                return;
+            }
+
+            if (Notification.permission === 'granted' && newPendingIds.length > 0) {
+                new Notification(notificationTitle, {
+                    body: reminderText,
+                    icon: '/static/images/logo.png'
+                });
+                saveIds();
+            }
+        };
+
+        const enableButton = document.getElementById('enable-browser-notification');
+        if (enableButton && 'Notification' in window) {
+            enableButton.addEventListener('click', function () {
+                Notification.requestPermission().then(function (permission) {
+                    if (permission === 'granted') {
+                        triggerBrowserNotification();
+                    }
+                });
+            });
+        }
+
+        if (pendingIds.length === 0) {
+            localStorage.removeItem(storageKey);
+        }
+
+        triggerBrowserNotification();
+
+        window.setInterval(function () {
+            if (document.visibilityState === 'visible') {
+                window.location.reload();
+            }
+        }, AUTO_REFRESH_MS);
+    });
+</script>
+{% endblock %}

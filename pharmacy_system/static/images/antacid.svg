@@ -1,0 +1,28 @@
+<svg width="200" height="250" viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="antacid" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffe0b2;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ffcc80;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffb74d;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="antacidLabel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fb8c00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e65100;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Bottle -->
+  <path d="M 60 80 L 60 200 Q 60 220 80 220 L 120 220 Q 140 220 140 200 L 140 80" fill="url(#antacid)" stroke="#e65100" stroke-width="2"/>
+  <!-- Cap -->
+  <rect x="70" y="60" width="60" height="20" rx="3" fill="#fb8c00"/>
+  <!-- Label -->
+  <rect x="65" y="115" width="70" height="65" rx="5" fill="url(#antacidLabel)"/>
+  <!-- Label Text -->
+  <text x="100" y="135" font-size="12" font-weight="bold" fill="white" text-anchor="middle">ANTACID</text>
+  <text x="100" y="152" font-size="10" fill="white" text-anchor="middle">Tablet</text>
+  <text x="100" y="170" font-size="9" fill="white" text-anchor="middle">Acidity Relief</text>
+  <!-- Tablets -->
+  <circle cx="80" cy="100" r="6" fill="#ffb74d" opacity="0.8"/>
+  <circle cx="115" cy="102" r="6" fill="#ffb74d" opacity="0.8"/>
+  <circle cx="90" cy="188" r="5" fill="#ffb74d" opacity="0.7"/>
+  <circle cx="115" cy="192" r="5" fill="#ffb74d" opacity="0.7"/>
+</svg>

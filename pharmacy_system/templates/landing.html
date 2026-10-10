@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('home.hero_title') }} — {{ t('app.tagline') }}{% endblock %}
+
+{% block content %}
+<section class="py-5 text-center hero-section" style="background: linear-gradient(135deg, #f5f7ff 0%, #e6eefc 100%);">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6 text-start">
+        <h1 class="display-4 fw-bold">{{ t('home.hero_title') }}</h1>
+        <p class="lead text-muted">{{ t('home.hero_tagline') }}</p>
+        <div class="mt-4">
+          {% if current_user.is_authenticated %}
+            <a href="{{ url_for('main_bp_final_unique.dashboard') }}" class="btn btn-primary btn-lg me-2">{{ t('home.primary_cta') }}</a>
+          {% else %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg me-2">{{ t('home.secondary_cta') }}</a>
+          {% endif %}
+          <a href="{{ url_for('recommendation.recommendation_form') }}" class="btn btn-outline-primary btn-lg">{{ t('home.symptom_cta') }}</a>
+        </div>
+      </div>
+      <div class="col-lg-6 text-end d-none d-lg-block">
+        <div class="card shadow" style="width:360px;border-radius:18px;">
+          <div class="card-body" style="padding:1.5rem;">
+            <h5 class="mb-3">{{ t('home.quick_symptom_title') }}</h5>
+            <p class="small text-muted">{{ t('home.quick_symptom_body') }}</p>
+            <div class="mt-3">
+              <div class="progress mb-2">
+                <div class="progress-bar" style="width:75%">{{ t('home.ai_match') }}</div>
+              </div>
+              <div class="d-flex justify-content-between small text-muted">
+                <span>Fever</span><span>Cold</span><span>Cough</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-5">
+  <div class="container">
+    <div class="row g-4 mb-4">
+      <div class="col-md-4">
+        <div class="card h-100 text-center border-left-primary">
+          <div class="card-body">
+            <div class="mb-3 display-6 text-primary">🧠</div>
+            <h5 class="card-title">{{ t('home.feature_ai_title') }}</h5>
+            <p class="card-text text-muted">{{ t('home.feature_ai_body') }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 text-center border-left-success">
+          <div class="card-body">
+            <div class="mb-3 display-6 text-success">🚚</div>
+            <h5 class="card-title">{{ t('home.feature_delivery_title') }}</h5>
+            <p class="card-text text-muted">{{ t('home.feature_delivery_body') }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 text-center border-left-info">
+          <div class="card-body">
+            <div class="mb-3 display-6 text-info">🔁</div>
+            <h5 class="card-title">{{ t('home.feature_refill_title') }}</h5>
+            <p class="card-text text-muted">{{ t('home.feature_refill_body') }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shopkeeper CTA Section -->
+    <div class="row mt-5 pt-5 border-top">
+      <div class="col-lg-8 mx-auto text-center">
+        <h3 class="mb-3">{{ t('home.shopkeeper_title') }}</h3>
+        <p class="lead text-muted mb-4">{{ t('home.shopkeeper_body') }}</p>
+        <a href="http://127.0.0.1:5001/auth/register" class="btn btn-success btn-lg" target="_blank">
+          💼 {{ t('home.shopkeeper_cta') }}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="py-4 bg-dark text-white mt-5">
+  <div class="container text-center">
+    <p class="mb-0">{{ t('footer.copyright') }}</p>
+  </div>
+</footer>
+
+{% endblock %}

@@ -1,0 +1,83 @@
+<svg viewBox="0 0 400 550" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="syrupBottleGrad" x1="35%" y1="5%" x2="65%" y2="95%">
+      <stop offset="0%" style="stop-color:#a8d18e;stop-opacity:1" />
+      <stop offset="25%" style="stop-color:#7fc97f;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#5bb75b;stop-opacity:1" />
+      <stop offset="75%" style="stop-color:#4a9d4a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2d7a2d;stop-opacity:0.9" />
+    </linearGradient>
+    
+    <linearGradient id="liquidGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1a4d1a;stop-opacity:0.8" />
+      <stop offset="50%" style="stop-color:#2d7a2d;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#1a4d1a;stop-opacity:0.8" />
+    </linearGradient>
+    
+    <linearGradient id="syrupShine" x1="10%" y1="0%" x2="20%" y2="100%">
+      <stop offset="0%" style="stop-color:white;stop-opacity:0.4" />
+      <stop offset="8%" style="stop-color:white;stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:white;stop-opacity:0" />
+    </linearGradient>
+    
+    <linearGradient id="capGrad4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#f0f0f0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d9d9d9;stop-opacity:1" />
+    </linearGradient>
+    
+    <filter id="shadow3D4">
+      <feDropShadow dx="3" dy="5" stdDeviation="4" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  
+  <!-- Shadow -->
+  <ellipse cx="200" cy="520" rx="85" ry="12" fill="black" opacity="0.2"/>
+  
+  <!-- Main Bottle (taller for syrup) -->
+  <g filter="url(#shadow3D4)">
+    <!-- Bottle outline -->
+    <path d="M 105 140 Q 95 200 98 300 Q 100 400 120 450 L 280 450 Q 300 400 302 300 Q 305 200 295 140 Z" 
+          fill="url(#syrupBottleGrad)" stroke="#2d7a2d" stroke-width="1.5" stroke-opacity="0.4"/>
+    
+    <!-- Liquid inside (lower 60% of bottle) -->
+    <path d="M 110 280 Q 100 320 102 390 Q 105 430 120 450 L 280 450 Q 295 430 298 390 Q 300 320 290 280" 
+          fill="url(#liquidGrad)" opacity="0.7"/>
+    
+    <!-- Liquid shine -->
+    <ellipse cx="125" cy="350" rx="12" ry="50" fill="white" opacity="0.15"/>
+    
+    <!-- Main glass shine -->
+    <path d="M 118 150 Q 116 250 118 350 Q 120 420 128 445" 
+          stroke="url(#syrupShine)" stroke-width="18" fill="none" opacity="0.5"/>
+    
+    <!-- Bottle neck -->
+    <rect x="160" y="70" width="80" height="80" rx="10" fill="url(#syrupBottleGrad)" stroke="#2d7a2d" stroke-width="1"/>
+    
+    <!-- Cap -->
+    <g>
+      <ellipse cx="200" cy="65" rx="45" ry="13" fill="url(#capGrad4)" stroke="#999" stroke-width="1"/>
+      <ellipse cx="200" cy="52" rx="48" ry="15" fill="url(#capGrad4)"/>
+      <ellipse cx="200" cy="48" rx="48" ry="10" fill="#ffffff" opacity="0.7"/>
+    </g>
+  </g>
+  
+  <!-- Label (classic syrup bottle label) -->
+  <rect x="95" y="220" width="210" height="160" rx="6" fill="white" stroke="#ccc" stroke-width="2" opacity="0.98"/>
+  
+  <!-- Top banner -->
+  <rect x="95" y="220" width="210" height="20" fill="#2d7a2d" rx="6 6 0 0"/>
+  <text x="200" y="233" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="white">COUGH SYRUP</text>
+  
+  <!-- Product name -->
+  <text x="200" y="265" font-family="Arial, sans-serif" font-size="26" font-weight="bold" text-anchor="middle" fill="#2d7a2d">COUGH SYRUP</text>
+  
+  <!-- Size/volume -->
+  <rect x="115" y="280" width="170" height="28" fill="#e8f5e9" rx="3" stroke="#2d7a2d" stroke-width="1"/>
+  <text x="200" y="303" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">100 ml</text>
+  
+  <!-- Benefits -->
+  <text x="200" y="335" font-family="Arial, sans-serif" font-size="12" font-weight="600" text-anchor="middle" fill="#1b5e20">Effective Cold & Cough Relief</text>
+  <text x="200" y="355" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#666">✓ Soothes Throat ✓ Reduces Cough</text>
+  <text x="200" y="370" font-family="Arial, sans-serif" font-size="8" fill="#999">Dosage: 5-10ml thrice daily | Do not exceed 30ml daily</text>
+</svg>

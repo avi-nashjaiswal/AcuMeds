@@ -1,0 +1,11 @@
+Flask==2.3.0
+Flask-SQLAlchemy==3.0.3
+Flask-Login==0.6.2
+Werkzeug==2.3.0
+reportlab==4.0.9
+requests==2.32.3
+paytmchecksum==1.7.0
+pycryptodome==3.20.0
+qrcode==7.4.2
+Pillow==10.4.0
+scikit-learn==1.6.1

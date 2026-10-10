@@ -1,0 +1,475 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="page-header mt-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-chart-bar"></i> Analytics & Reports</h1>
+            <p class="text-muted">System performance and insights</p>
+        </div>
+        <button class="btn btn-outline-primary" onclick="downloadReport()">
+            <i class="fas fa-download"></i> Download Report
+        </button>
+    </div>
+</div>
+
+<!-- Loading Spinner -->
+<div id="loadingSpinner" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading analytics...</span>
+    </div>
+</div>
+
+<!-- Analytics Content (hidden until loaded) -->
+<div id="analyticsContent" style="display: none;">
+
+<!-- Key Metrics -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card primary">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Total Revenue</h6>
+                <div class="stat-value" id="totalRevenueValue">₹0</div>
+                <small class="text-success" id="monthlyRevenueText">+₹0 this month</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card success">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Total Orders</h6>
+                <div class="stat-value" id="totalOrdersValue">0</div>
+                <small id="ordersThisMonthText">0 orders this month</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card warning">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Medicines</h6>
+                <div class="stat-value" id="totalMedicinesValue">0</div>
+                <small>In stock</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card info">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Active Users (30d)</h6>
+                <div class="stat-value" id="activeUsersValue">0</div>
+                <small>Placed orders</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <!-- Monthly Revenue Trend -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line"></i> Monthly Revenue Trend</h5>
+            </div>
+            <div class="card-body" style="height: 350px;">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Status Distribution -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-pie-chart"></i> Order Status Distribution</h5>
+            </div>
+            <div class="card-body" style="height: 350px;">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Medicines Sales -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-star"></i> Top 5 Best-Selling Medicines</h5>
+            </div>
+            <div class="card-body" style="height: 350px;">
+                <canvas id="topMedicinesChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Health Summary -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-heartbeat"></i> System Health</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-6">
+                        <strong>Total Users:</strong>
+                    </div>
+                    <div class="col-sm-6" id="totalUsersText">
+                        --
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-6">
+                        <strong>Total Shopkeepers:</strong>
+                    </div>
+                    <div class="col-sm-6" id="totalShopkeepersText">
+                        --
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-6">
+                        <strong>Active in 30 Days:</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="badge bg-success" id="activeUsersBadge">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-list"></i> Orders Summary</h5>
+            </div>
+            <div class="card-body">
+                <div id="orderStatusSummary"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div><!-- End of analyticsContent -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+let revenueChart, statusChart, topMedicinesChart;
+
+// Function to format currency
+function formatCurrency(value) {
+    return '₹' + value.toLocaleString('en-IN', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    });
+}
+
+// Load analytics data from API
+async function loadAnalytics() {
+    try {
+        const response = await fetch('/api/medicines/analytics');
+        if (!response.ok) {
+            throw new Error(`Analytics request failed: ${response.status}`);
+        }
+        const data = await response.json();
+        
+        if (!data.success) {
+            console.error('Error loading analytics:', data.error);
+            return;
+        }
+        
+        // Update summary metrics
+        updateSummaryMetrics(data.summary);
+        
+        // Create charts
+        createRevenueChart(data.monthly_trend);
+        createStatusChart(data.orders_by_status);
+        createTopMedicinesChart(data.top_medicines);
+        
+        // Show content, hide spinner
+        document.getElementById('loadingSpinner').style.display = 'none';
+        document.getElementById('analyticsContent').style.display = 'block';
+        
+    } catch (error) {
+        console.error('Error loading analytics:', error);
+        document.getElementById('loadingSpinner').innerHTML = 
+            '<div class="alert alert-danger">Error loading analytics data</div>';
+    }
+}
+
+// Update summary metrics
+function updateSummaryMetrics(summary) {
+    document.getElementById('totalRevenueValue').textContent = formatCurrency(summary.total_revenue);
+    document.getElementById('monthlyRevenueText').textContent = 
+        `+${formatCurrency(summary.monthly_revenue)} this month`;
+    document.getElementById('totalOrdersValue').textContent = summary.total_orders;
+    document.getElementById('totalMedicinesValue').textContent = summary.total_medicines;
+    document.getElementById('activeUsersValue').textContent = summary.active_users_30d;
+    document.getElementById('activeUsersBadge').textContent = summary.active_users_30d;
+    document.getElementById('totalUsersText').textContent = summary.total_users;
+    document.getElementById('totalShopkeepersText').textContent = summary.total_shopkeepers;
+}
+
+// Create revenue chart
+function createRevenueChart(monthlyTrend) {
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    
+    revenueChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: monthlyTrend.map(item => item.month),
+            datasets: [{
+                label: 'Monthly Revenue',
+                data: monthlyTrend.map(item => item.revenue),
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: 'rgb(75, 192, 192)',
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString('en-IN');
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Create status distribution chart
+function createStatusChart(ordersByStatus) {
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    
+    const colors = {
+        'Pending': 'rgba(255, 193, 7, 0.8)',
+        'Confirmed': 'rgba(33, 150, 243, 0.8)',
+        'Processing': 'rgba(156, 39, 176, 0.8)',
+        'Ready': 'rgba(76, 175, 80, 0.8)',
+        'Delivered': 'rgba(76, 175, 80, 0.8)',
+        'Cancelled': 'rgba(244, 67, 54, 0.8)'
+    };
+    
+    statusChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(ordersByStatus),
+            datasets: [{
+                label: 'Orders',
+                data: Object.values(ordersByStatus),
+                backgroundColor: Object.keys(ordersByStatus).map(status => 
+                    colors[status] || 'rgba(158, 158, 158, 0.8)'
+                ),
+                borderColor: '#fff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Create order status summary
+    let summaryHtml = '';
+    for (const [status, count] of Object.entries(ordersByStatus)) {
+        summaryHtml += `
+            <div class="d-flex justify-content-between mb-2">
+                <span>${status}</span>
+                <span class="badge bg-secondary">${count}</span>
+            </div>
+        `;
+    }
+    document.getElementById('orderStatusSummary').innerHTML = summaryHtml;
+}
+
+// Create top medicines chart
+function createTopMedicinesChart(topMedicines) {
+    const ctx = document.getElementById('topMedicinesChart').getContext('2d');
+    
+    topMedicinesChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: topMedicines.map(med => med.name),
+            datasets: [{
+                label: 'Units Sold',
+                data: topMedicines.map(med => med.total_sold),
+                backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                borderColor: 'rgb(75, 192, 192)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value + ' units';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function csvEscape(value) {
+    const text = String(value ?? '');
+    if (text.includes('"') || text.includes(',') || text.includes('\n') || text.includes('\r')) {
+        return '"' + text.replace(/"/g, '""') + '"';
+    }
+    return text;
+}
+
+async function downloadReport() {
+    try {
+        const response = await fetch('/api/medicines/analytics');
+        if (!response.ok) {
+            throw new Error(`Analytics request failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to load analytics data');
+        }
+
+        const lines = [];
+        const summary = data.summary || {};
+
+        lines.push('Section,Metric,Value');
+        lines.push(`Summary,Total Orders,${csvEscape(summary.total_orders)}`);
+        lines.push(`Summary,Total Users,${csvEscape(summary.total_users)}`);
+        lines.push(`Summary,Total Medicines,${csvEscape(summary.total_medicines)}`);
+        lines.push(`Summary,Total Shopkeepers,${csvEscape(summary.total_shopkeepers)}`);
+        lines.push(`Summary,Total Revenue,${csvEscape(summary.total_revenue)}`);
+        lines.push(`Summary,Monthly Revenue (30d),${csvEscape(summary.monthly_revenue)}`);
+        lines.push(`Summary,Active Users (30d),${csvEscape(summary.active_users_30d)}`);
+
+        lines.push('');
+        lines.push('Order Status,Status,Count');
+        const ordersByStatus = data.orders_by_status || {};
+        for (const [status, count] of Object.entries(ordersByStatus)) {
+            lines.push(`Order Status,${csvEscape(status)},${csvEscape(count)}`);
+        }
+
+        lines.push('');
+        lines.push('Top Medicines,Medicine,Units Sold,Revenue');
+        const topMeds = data.top_medicines || [];
+        for (const med of topMeds) {
+            lines.push(`Top Medicines,${csvEscape(med.name)},${csvEscape(med.total_sold)},${csvEscape(med.revenue)}`);
+        }
+
+        lines.push('');
+        lines.push('Monthly Trend,Month,Revenue');
+        const monthlyTrend = data.monthly_trend || [];
+        for (const item of monthlyTrend) {
+            lines.push(`Monthly Trend,${csvEscape(item.month)},${csvEscape(item.revenue)}`);
+        }
+
+        const csvContent = lines.join('\r\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const filename = `analytics-report-${yyyy}-${mm}-${dd}.csv`;
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Report download failed:', error);
+        alert('Unable to download report. Please try again.');
+    }
+}
+
+// Load analytics on page load
+document.addEventListener('DOMContentLoaded', loadAnalytics);
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        padding: 20px 0;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .stat-card {
+        border-left: 4px solid var(--bs-primary);
+        transition: transform 0.2s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stat-card.primary {
+        border-left-color: var(--bs-primary);
+    }
+    
+    .stat-card.success {
+        border-left-color: var(--bs-success);
+    }
+    
+    .stat-card.warning {
+        border-left-color: var(--bs-warning);
+    }
+    
+    .stat-card.info {
+        border-left-color: var(--bs-info);
+    }
+    
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: bold;
+        color: var(--bs-primary);
+        margin: 10px 0;
+    }
+</style>
+{% endblock %}

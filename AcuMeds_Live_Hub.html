@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AcuMeds Live Project Hub</title>
+<style>
+  :root {
+    --bg1: #0f172a;
+    --bg2: #0f766e;
+    --card: rgba(255,255,255,0.94);
+    --text: #0f172a;
+    --muted: #475569;
+    --accent: #0f766e;
+    --accent2: #1d4ed8;
+    --border: rgba(15, 23, 42, 0.12);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--text);
+    background:
+      radial-gradient(circle at top left, rgba(45, 212, 191, 0.28), transparent 30%),
+      radial-gradient(circle at top right, rgba(59, 130, 246, 0.22), transparent 30%),
+      linear-gradient(160deg, var(--bg1) 0%, #0f172a 40%, #0b3b45 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+  }
+  .shell {
+    width: min(980px, 100%);
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 28px;
+    box-shadow: 0 30px 80px rgba(2, 6, 23, 0.45);
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+  }
+  .hero {
+    padding: 48px 42px 34px;
+    background: linear-gradient(135deg, rgba(15,118,110,0.10), rgba(29,78,216,0.08));
+    border-bottom: 1px solid var(--border);
+  }
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    font-size: 0.78rem;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3.3rem);
+    line-height: 1.05;
+  }
+  .subtitle {
+    margin: 14px 0 0;
+    font-size: 1.08rem;
+    line-height: 1.65;
+    color: var(--muted);
+    max-width: 800px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    padding: 28px 42px 42px;
+  }
+  .card {
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 22px;
+    background: #fff;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.04);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+  .role {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 1.15rem;
+    margin-bottom: 10px;
+  }
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px rgba(15,118,110,0.10);
+  }
+  .desc {
+    margin: 0 0 18px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .btn {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(135deg, var(--accent), #0ea5a5);
+    transition: transform 0.18s ease, filter 0.18s ease;
+  }
+  .btn:hover { transform: translateY(-1px); filter: brightness(1.04); }
+  .btn.secondary { background: linear-gradient(135deg, var(--accent2), #2563eb); }
+  .footer {
+    padding: 0 42px 42px;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .note {
+    border-top: 1px dashed var(--border);
+    padding-top: 16px;
+    line-height: 1.7;
+  }
+  code {
+    background: #e2e8f0;
+    padding: 0.15rem 0.35rem;
+    border-radius: 6px;
+  }
+  @media (max-width: 720px) {
+    .grid { grid-template-columns: 1fr; padding: 22px 18px 28px; }
+    .hero { padding: 32px 18px 22px; }
+    .footer { padding: 0 18px 28px; }
+  }
+</style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="eyebrow">AcuMeds Live Project Hub</div>
+      <h1>One Link for All Portals</h1>
+      <p class="subtitle">Open this page on any device. From here you can enter the customer portal, shopkeeper portal, admin panel, or delivery portal. This link is shareable and works outside your computer because each portal is published with its own public access URL.</p>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <div class="role"><span class="dot"></span>User / Customer</div>
+        <p class="desc">Browse medicines, use the cart, place orders, and view recommendations.</p>
+        <a class="btn" href="https://orange-mirrors-wait.loca.lt" target="_blank" rel="noopener noreferrer">Open User Portal</a>
+      </article>
+
+      <article class="card">
+        <div class="role"><span class="dot"></span>Shopkeeper</div>
+        <p class="desc">Manage inventory, medicines, and shopkeeper workflows.</p>
+        <a class="btn secondary" href="https://pretty-dogs-float.loca.lt" target="_blank" rel="noopener noreferrer">Open Shopkeeper Portal</a>
+      </article>
+
+      <article class="card">
+        <div class="role"><span class="dot"></span>Admin</div>
+        <p class="desc">Approve shopkeepers, manage medicines, and supervise the platform.</p>
+        <a class="btn" href="https://thin-seals-marry.loca.lt" target="_blank" rel="noopener noreferrer">Open Admin Panel</a>
+      </article>
+
+      <article class="card">
+        <div class="role"><span class="dot"></span>Doctor / Telehealth</div>
+        <p class="desc">Conduct patient video consultations, issue e-prescriptions, and AI diagnosis.</p>
+        <a class="btn" href="http://127.0.0.1:5004" target="_blank" rel="noopener noreferrer" style="background: linear-gradient(135deg, #0f766e, #0369a1);">Open Doctor Portal</a>
+      </article>
+
+      <article class="card">
+        <div class="role"><span class="dot"></span>Delivery</div>
+        <p class="desc">Track deliveries, update status, and handle order movement.</p>
+        <a class="btn secondary" href="https://sad-eagles-build.loca.lt" target="_blank" rel="noopener noreferrer">Open Delivery Portal</a>
+      </article>
+    </section>
+
+    <div class="footer">
+      <div class="note">
+        If you want, I can also make a <code>PDF</code> version of the report or create a shorter single-link demo page for WhatsApp sharing.
+      </div>
+    </div>
+  </main>
+</body>
+</html>

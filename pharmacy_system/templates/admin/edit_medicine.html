@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Medicine - AcuMeds Admin{% endblock %}
+
+{% block content %}
+<h1 class="mb-4"><i class="fas fa-edit"></i> Edit Medicine</h1>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Medicine Name *</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ medicine.name }}" required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="category" class="form-label">Category *</label>
+                            <input type="text" class="form-control" id="category" name="category" value="{{ medicine.category }}" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3">{{ medicine.description or '' }}</textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="strength_value" class="form-label">Power (Strength)</label>
+                            <input type="number" class="form-control" id="strength_value" name="strength_value" step="0.01" min="0" value="{{ medicine.strength_value or '' }}" placeholder="e.g., 500">
+                            <small class="form-text text-muted">Tablets: mg/mcg. Syrups: mg/5ml.</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="strength_unit" class="form-label">Unit</label>
+                            <select class="form-select" id="strength_unit" name="strength_unit">
+                                <option value="">Select Unit</option>
+                                <option value="mg" {% if medicine.strength_unit == 'mg' %}selected{% endif %}>mg</option>
+                                <option value="mcg" {% if medicine.strength_unit == 'mcg' %}selected{% endif %}>mcg</option>
+                                <option value="g" {% if medicine.strength_unit == 'g' %}selected{% endif %}>g</option>
+                                <option value="mg/5ml" {% if medicine.strength_unit == 'mg/5ml' %}selected{% endif %}>mg/5ml</option>
+                                <option value="mg/ml" {% if medicine.strength_unit == 'mg/ml' %}selected{% endif %}>mg/ml</option>
+                                <option value="IU" {% if medicine.strength_unit == 'IU' %}selected{% endif %}>IU</option>
+                                <option value="ml" {% if medicine.strength_unit == 'ml' %}selected{% endif %}>ml</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Medicine Images (PNG, JPG/JPEG, GIF, WEBP, AVIF) - Optional</label>
+                        <div class="input-group mb-2">
+                            <input type="file" class="form-control" id="images" name="images" accept="image/png,image/jpeg,image/gif,image/webp,image/avif" multiple>
+                        </div>
+                        <small class="form-text text-muted">Upload new photos to replace the current gallery. You can select multiple files. Max 5MB each.</small>
+                        <input type="url" class="form-control mt-2" id="image_url" name="image_url" placeholder="https://example.com/medicine.jpg">
+                        <small class="form-text text-muted">Optional: paste a single image URL if you are not uploading files. Leave blank to keep current gallery.</small>
+                        {% if gallery_images %}
+                        <div class="mt-2">
+                            <small class="text-muted"><strong>Current gallery:</strong></small>
+                            <small class="d-block text-muted">Use the arrows to change the order. The first image becomes the main image.</small>
+                            <input type="hidden" id="gallery_order" name="gallery_order">
+                            <div id="gallery-order-list" class="d-flex gap-2 flex-wrap mt-2">
+                                {% for image_url in gallery_images %}
+                                    <div class="gallery-order-item d-flex flex-column align-items-center" data-gallery-item data-gallery-value="{{ gallery_image_values[loop.index0] | e }}" style="width: 90px;">
+                                        <img src="{{ image_url }}" alt="{{ medicine.name }} image {{ loop.index }}" style="width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid #dee2e6;">
+                                        <div class="d-flex gap-1 mt-2">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary js-gallery-move-left" aria-label="Move image left">&larr;</button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary js-gallery-move-right" aria-label="Move image right">&rarr;</button>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="price" class="form-label">Price *</label>
+                            <input type="number" class="form-control" id="price" name="price" step="0.01" value="{{ medicine.price }}" required>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="stock_quantity" class="form-label">Stock Quantity *</label>
+                            <input type="number" class="form-control" id="stock_quantity" name="stock_quantity" value="{{ medicine.stock_quantity }}" required>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="requires_prescription" class="form-label">Requires Prescription?</label>
+                            <div>
+                                <input type="checkbox" id="requires_prescription" name="requires_prescription" value="on" {% if medicine.requires_prescription %}checked{% endif %}>
+                                <label for="requires_prescription">Yes</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="side_effects" class="form-label">Side Effects</label>
+                        <textarea class="form-control" id="side_effects" name="side_effects" rows="2">{{ medicine.side_effects or '' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="usage_instructions" class="form-label">Usage Instructions</label>
+                        <textarea class="form-control" id="usage_instructions" name="usage_instructions" rows="3">{{ medicine.usage_instructions or '' }}</textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Medicine
+                    </button>
+                    <a href="{{ url_for('admin.manage_medicines') }}" class="btn btn-outline-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const galleryList = document.getElementById('gallery-order-list');
+    const galleryOrderInput = document.getElementById('gallery_order');
+
+    if (!galleryList || !galleryOrderInput) {
+        return;
+    }
+
+    const syncGalleryOrder = function () {
+        const items = Array.from(galleryList.querySelectorAll('[data-gallery-item]'));
+        galleryOrderInput.value = JSON.stringify(items.map(function (item) {
+            return item.dataset.galleryValue;
+        }));
+
+        items.forEach(function (item, index) {
+            const leftButton = item.querySelector('.js-gallery-move-left');
+            const rightButton = item.querySelector('.js-gallery-move-right');
+            if (leftButton) {
+                leftButton.disabled = index === 0;
+            }
+            if (rightButton) {
+                rightButton.disabled = index === items.length - 1;
+            }
+        });
+    };
+
+    galleryList.addEventListener('click', function (event) {
+        const leftButton = event.target.closest('.js-gallery-move-left');
+        const rightButton = event.target.closest('.js-gallery-move-right');
+        const item = event.target.closest('[data-gallery-item]');
+
+        if (!item) {
+            return;
+        }
+
+        if (leftButton && item.previousElementSibling) {
+            galleryList.insertBefore(item, item.previousElementSibling);
+            syncGalleryOrder();
+        }
+
+        if (rightButton && item.nextElementSibling) {
+            galleryList.insertBefore(item.nextElementSibling, item);
+            syncGalleryOrder();
+        }
+    });
+
+    syncGalleryOrder();
+});
+</script>
+{% endblock %}

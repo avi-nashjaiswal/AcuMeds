@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - AcuMeds Pharmacy{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-12">
+        <h2 class="fw-bold text-dark mb-1"><i class="fas fa-shopping-bag text-success me-2"></i> Medicine Checkout</h2>
+        <p class="text-muted mb-0">Review your order items, delivery address, and payment method</p>
+    </div>
+
+    <div class="col-lg-8">
+        <!-- Multi-Vendor Orders Grouped by Shop -->
+        {% if items_by_shop %}
+            {% for shop_id, shop_data in items_by_shop.items() %}
+                {% set shopkeeper = shop_data['shopkeeper'] %}
+                {% set items = shop_data['items'] %}
+                <div class="card border-0 shadow-sm rounded-4 mb-3 overflow-hidden">
+                    <div class="card-header bg-gradient bg-primary text-white py-3 px-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0 fw-bold">
+                                    <i class="fas fa-store me-1"></i> 
+                                    {{ shopkeeper.shop_name if shopkeeper else 'AcuMeds Central Warehouse' }}
+                                </h6>
+                                {% if shopkeeper %}
+                                    <small class="text-white-50"><i class="fas fa-map-marker-alt"></i> {{ shopkeeper.city or 'Verified Pharmacy Partner' }}</small>
+                                {% endif %}
+                            </div>
+                            <span class="badge bg-light text-primary rounded-pill px-3 py-1 fw-bold">Shop #{{ shop_id }}</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Medicine</th>
+                                        <th>Price</th>
+                                        <th class="text-center">Quantity</th>
+                                        <th class="text-end">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in items %}
+                                    <tr>
+                                        <td>
+                                            <strong class="text-dark">{{ item.medicine.name }}</strong>
+                                            <div class="small text-muted">{{ item.medicine.category }}</div>
+                                        </td>
+                                        <td>₹{{ "%.2f"|format(item.medicine.price) }}</td>
+                                        <td class="text-center"><span class="badge bg-light text-dark border">{{ item.quantity }}</span></td>
+                                        <td class="text-end fw-bold text-success">₹{{ "%.2f"|format(item.get_total()) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="bg-light p-2 rounded-3 mt-2 d-flex justify-content-between align-items-center px-3">
+                            <span class="small fw-bold text-secondary">Shop Subtotal:</span>
+                            <span class="fw-bold text-primary">₹{{ "%.2f"|format(shop_totals[shop_id]) }}</span>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <!-- Delivery Address Card -->
+            <div class="card border-0 shadow-sm rounded-4 mt-3">
+                <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-truck text-success me-2"></i> Delivery Address</h5>
+                    <a href="{{ url_for('main_bp_final_unique.profile') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">Edit Address</a>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-2 text-secondary">
+                        <div class="col-sm-6">
+                            <strong>Recipient:</strong> {{ current_user.full_name or current_user.username }}<br>
+                            <strong>Phone Number:</strong> {{ current_user.phone or '+91-9876543210 (Default)' }}
+                        </div>
+                        <div class="col-sm-6">
+                            <strong>Address:</strong><br>
+                            {{ current_user.address or 'Standard Delivery Address, City, State, India' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Right: Summary & Payment -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3">
+            <div class="card-header bg-gradient bg-success text-white py-3 px-4">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-receipt me-1"></i> Order Summary</h5>
+            </div>
+            <div class="card-body p-4">
+                {% set grand_subtotal = total %}
+                <div class="small text-secondary mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Medicines Total:</span>
+                        <span>₹{{ "%.2f"|format(grand_subtotal) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Standard Delivery:</span>
+                        <span class="text-success fw-bold">FREE</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>GST / Pharmacy Tax (5%):</span>
+                        <span>₹{{ "%.2f"|format(grand_subtotal * 0.05) }}</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong class="text-dark fs-6">Grand Total:</strong>
+                        <span class="fs-4 fw-bold text-success">₹{{ "%.2f"|format(grand_subtotal * 1.05) }}</span>
+                    </div>
+                </div>
+
+                <form method="POST">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark mb-2">Choose Payment Option</label>
+                        
+                        <!-- Instant Online Payment -->
+                        <div class="form-check border rounded-3 p-3 mb-2 bg-light">
+                            <input class="form-check-input ms-0 me-2" type="radio" name="payment_method" id="pay_online" value="Online Payment" checked>
+                            <label class="form-check-label fw-bold text-dark d-block" for="pay_online">
+                                ⚡ Instant Online Pay
+                                <span class="badge bg-success float-end">Recommended</span>
+                            </label>
+                            <small class="text-muted d-block ps-4">UPI Apps, QR Code, Debit/Credit Card, Net Banking & Wallets</small>
+                        </div>
+
+                        <!-- Manual UPI -->
+                        <div class="form-check border rounded-3 p-3 mb-2">
+                            <input class="form-check-input ms-0 me-2" type="radio" name="payment_method" id="pay_manual_upi" value="Manual UPI">
+                            <label class="form-check-label fw-bold text-dark d-block" for="pay_manual_upi">
+                                📱 Direct UPI (Pay to UPI ID / UTR)
+                            </label>
+                            <small class="text-muted d-block ps-4">Pay directly via Google Pay / PhonePe and enter UTR</small>
+                        </div>
+
+                        <!-- Cash on Delivery -->
+                        <div class="form-check border rounded-3 p-3 mb-2">
+                            <input class="form-check-input ms-0 me-2" type="radio" name="payment_method" id="pay_cod" value="Cash on Delivery">
+                            <label class="form-check-label fw-bold text-dark d-block" for="pay_cod">
+                                💵 Cash on Delivery (COD)
+                            </label>
+                            <small class="text-muted d-block ps-4">Pay cash when delivery agent arrives at doorstep</small>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 btn-lg rounded-pill fw-bold shadow-sm py-3 mb-2">
+                        <i class="fas fa-lock me-1"></i> Proceed to Pay ₹{{ "%.2f"|format(grand_subtotal * 1.05) }}
+                    </button>
+                </form>
+
+                <a href="{{ url_for('cart.view_cart') }}" class="btn btn-outline-secondary w-100 rounded-pill py-2">
+                    <i class="fas fa-arrow-left me-1"></i> Return to Cart
+                </a>
+            </div>
+        </div>
+
+        <div class="alert alert-info border-0 rounded-4 shadow-sm p-3 small">
+            <i class="fas fa-shield-check text-info fa-lg me-2"></i>
+            <strong>AcuMeds Safe Delivery:</strong> Genuine sealed medicines with batch verification & temperature-controlled delivery.
+        </div>
+    </div>
+</div>
+{% endblock %}

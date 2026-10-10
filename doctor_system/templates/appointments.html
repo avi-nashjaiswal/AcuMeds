@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Appointments Management{% endblock %}
+{% block page_title %}Patient Consultations & Appointments{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <h2>All Appointments ({{ appointments|length }})</h2>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div style="display: flex; gap: 8px;">
+      <a href="{{ url_for('doctor.appointments', status='all') }}" class="btn btn-sm {% if current_filter == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">All</a>
+      <a href="{{ url_for('doctor.appointments', status='pending') }}" class="btn btn-sm {% if current_filter == 'pending' %}btn-primary{% else %}btn-secondary{% endif %}">Pending</a>
+      <a href="{{ url_for('doctor.appointments', status='confirmed') }}" class="btn btn-sm {% if current_filter == 'confirmed' %}btn-primary{% else %}btn-secondary{% endif %}">Confirmed</a>
+      <a href="{{ url_for('doctor.appointments', status='completed') }}" class="btn btn-sm {% if current_filter == 'completed' %}btn-primary{% else %}btn-secondary{% endif %}">Completed</a>
+    </div>
+  </div>
+
+  {% if appointments %}
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Patient Details</th>
+            <th>Schedule</th>
+            <th>Consultation Type</th>
+            <th>Reported Symptoms</th>
+            <th>Fee & Payment</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for appt in appointments %}
+            <tr>
+              <td>#APT-{{ appt.id }}</td>
+              <td>
+                <strong>{{ appt.patient_name or (appt.patient.full_name if appt.patient else 'Patient') }}</strong>
+                <div style="font-size: 0.78rem; color: var(--slate-500);">
+                  {{ appt.patient_gender or 'N/A' }}, {{ appt.patient_age or '30' }} yrs
+                </div>
+                {% set pphone = appt.patient_phone or (appt.patient.phone if appt.patient else '') %}
+                {% if pphone %}
+                  <a href="tel:{{ pphone }}" style="font-size: 0.78rem; color: var(--success); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
+                    <i class="fa-solid fa-phone-volume"></i> {{ pphone }}
+                  </a>
+                {% endif %}
+              </td>
+              <td>
+                <div style="font-weight: 700; color: var(--dark);">{{ appt.appointment_time }}</div>
+                <div style="font-size: 0.78rem; color: var(--slate-500);">{{ appt.appointment_date }}</div>
+              </td>
+              <td>
+                {% if 'audio' in (appt.consultation_type or '')|lower %}
+                  <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 600; color: #0284c7;">
+                    <i class="fa-solid fa-phone"></i> {{ appt.consultation_type }}
+                  </span>
+                {% elif 'clinic' in (appt.consultation_type or '')|lower or 'in-person' in (appt.consultation_type or '')|lower %}
+                  <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 600; color: var(--slate-600);">
+                    <i class="fa-solid fa-hospital-user"></i> {{ appt.consultation_type }}
+                  </span>
+                {% else %}
+                  <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 600; color: var(--accent);">
+                    <i class="fa-solid fa-video"></i> {{ appt.consultation_type }}
+                  </span>
+                {% endif %}
+              </td>
+              <td style="max-width: 220px;">
+                <div style="font-size: 0.85rem; color: var(--slate-800); line-height: 1.4;">
+                  {{ appt.symptoms or 'General consultation request' }}
+                </div>
+              </td>
+              <td>
+                <strong>₹{{ appt.consultation_fee }}</strong>
+                <div><span style="font-size: 0.75rem; color: var(--success); font-weight: 700;">{{ appt.payment_status }}</span></div>
+              </td>
+              <td>
+                <span class="badge badge-{{ appt.status.lower().replace(' ', '_') }}">{{ appt.status }}</span>
+              </td>
+              <td>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                  {% if appt.status == 'Pending' %}
+                    <form method="POST" action="{{ url_for('doctor.update_appointment_status', appointment_id=appt.id) }}" style="display: inline;">
+                      <input type="hidden" name="status" value="Confirmed">
+                      <button type="submit" class="btn btn-sm btn-success" title="Accept & Confirm">
+                        <i class="fa-solid fa-check"></i> Accept
+                      </button>
+                    </form>
+                    <form method="POST" action="{{ url_for('doctor.update_appointment_status', appointment_id=appt.id) }}" style="display: inline;">
+                      <input type="hidden" name="status" value="Cancelled">
+                      <button type="submit" class="btn btn-sm btn-secondary" style="color: var(--danger);" title="Decline">
+                        <i class="fa-solid fa-xmark"></i>
+                      </button>
+                    </form>
+                  {% elif appt.status in ['Confirmed', 'In Consultation'] %}
+                    {% set pphone = appt.patient_phone or (appt.patient.phone if appt.patient else '') %}
+                    {% if pphone %}
+                      <a href="tel:{{ pphone }}" class="btn btn-sm btn-success" title="Call Patient Phone">
+                        <i class="fa-solid fa-phone"></i> Call
+                      </a>
+                    {% endif %}
+                    <a href="{{ url_for('doctor.consultation', appointment_id=appt.id) }}" class="btn btn-sm btn-primary">
+                      <i class="fa-solid fa-headset"></i> Room
+                    </a>
+                    <a href="{{ url_for('doctor.prescribe', appointment_id=appt.id) }}" class="btn btn-sm btn-accent" title="Write Prescription">
+                      <i class="fa-solid fa-prescription"></i> Prescribe
+                    </a>
+                  {% elif appt.status == 'Completed' %}
+                    {% if appt.prescription %}
+                      <a href="{{ url_for('doctor.prescription_view', prescription_id=appt.prescription.id) }}" class="btn btn-sm btn-secondary">
+                        <i class="fa-solid fa-file-prescription"></i> Rx Sheet
+                      </a>
+                    {% else %}
+                      <a href="{{ url_for('doctor.prescribe', appointment_id=appt.id) }}" class="btn btn-sm btn-accent">
+                        <i class="fa-solid fa-pen"></i> Issue Rx
+                      </a>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div style="text-align: center; padding: 60px 20px; color: var(--slate-500);">
+      <i class="fa-solid fa-calendar-xmark" style="font-size: 48px; color: var(--slate-300); margin-bottom: 16px;"></i>
+      <h3>No appointments found</h3>
+      <p>No bookings match the selected status filter.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

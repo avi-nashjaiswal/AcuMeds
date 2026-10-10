@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Orders - AcuMeds Delivery{% endblock %}
+
+{% block content %}
+<h1 class="mb-4"><i class="fas fa-boxes"></i> Manage Orders</h1>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Delivery</th>
+                        <th>Order Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td><strong>#{{ order.id }}</strong></td>
+                        <td>{{ order.user.full_name or order.user.username }}</td>
+                        <td>INR {{ "%.2f"|format(order.total_amount) }}</td>
+                        <td>
+                            <span class="badge bg-{% if order.status == 'Delivered' %}success{% elif order.status == 'Assigned' %}info{% else %}secondary{% endif %}">
+                                {{ order.status }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if order.delivery %}
+                                <div class="small">
+                                    <strong>{{ order.delivery.delivery_agent.user.full_name | default(order.delivery.delivery_agent.user.username) }}</strong>
+                                </div>
+                                <span class="badge bg-{% if order.delivery.status == 'Delivered' %}success{% elif order.delivery.status == 'Out for Delivery' %}info{% else %}secondary{% endif %}">
+                                    {{ order.delivery.status }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted small">Unassigned</span>
+                            {% endif %}
+                            <form method="POST" action="{{ url_for('admin.assign_delivery', order_id=order.id) }}" class="d-flex gap-2 mt-2">
+                                <select name="delivery_agent_id" class="form-select form-select-sm">
+                                    <option value="">Select agent</option>
+                                    {% for agent in delivery_agents %}
+                                        <option value="{{ agent.id }}" {% if order.delivery and order.delivery.delivery_agent_id == agent.id %}selected{% endif %}>
+                                            {{ agent.user.full_name | default(agent.user.username) }}{% if agent.city %} ({{ agent.city }}){% endif %}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">Assign</button>
+                            </form>
+                        </td>
+                        <td>{{ order.order_date.strftime('%m/%d/%Y') }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.manage_orders') }}" class="btn btn-sm btn-outline-primary">Refresh</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
+</div>
+{% endblock %}

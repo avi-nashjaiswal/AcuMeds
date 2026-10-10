@@ -1,0 +1,28 @@
+<svg width="200" height="250" viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="vitaminBottle" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fff8e1;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ffe082;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fdd835;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="vitaminLabel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffc107;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff9800;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Bottle -->
+  <path d="M 60 80 L 60 200 Q 60 220 80 220 L 120 220 Q 140 220 140 200 L 140 80" fill="url(#vitaminBottle)" stroke="#d4a500" stroke-width="2"/>
+  <!-- Cap -->
+  <rect x="70" y="60" width="60" height="20" rx="3" fill="#ffc107"/>
+  <!-- Label -->
+  <rect x="65" y="120" width="70" height="60" rx="5" fill="url(#vitaminLabel)"/>
+  <!-- Label Text -->
+  <text x="100" y="140" font-size="12" font-weight="bold" fill="white" text-anchor="middle">VIT C</text>
+  <text x="100" y="155" font-size="10" fill="white" text-anchor="middle">500mg</text>
+  <text x="100" y="172" font-size="9" fill="white" text-anchor="middle">Immunity</text>
+  <!-- Tablets inside -->
+  <circle cx="80" cy="100" r="5" fill="#ffc107" opacity="0.8"/>
+  <circle cx="110" cy="105" r="5" fill="#ffc107" opacity="0.8"/>
+  <circle cx="90" cy="190" r="4" fill="#ffc107" opacity="0.7"/>
+  <circle cx="115" cy="195" r="4" fill="#ffc107" opacity="0.7"/>
+</svg>

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Profile{% endblock %}
+{% block page_title %}Doctor Profile & Credentials{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 760px; margin: 0 auto;">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-id-card" style="color: var(--primary);"></i> Professional Profile</h2>
+    <span class="badge badge-completed">Verified Practitioner</span>
+  </div>
+
+  <form method="POST" action="{{ url_for('doctor.profile') }}">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+      <div>
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Doctor Full Name</label>
+        <input type="text" name="full_name" value="{{ current_user.full_name or '' }}" required style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+      <div>
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Medical License / Reg No.</label>
+        <input type="text" name="license_number" value="{{ doctor.license_number or '' }}" required style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+      <div>
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Specialization Area</label>
+        <input type="text" name="specialization" value="{{ doctor.specialization or '' }}" required style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+      <div>
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Qualifications & Degrees</label>
+        <input type="text" name="qualification" value="{{ doctor.qualification or '' }}" required style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+      <div>
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Years Experience</label>
+        <input type="number" name="experience_years" value="{{ doctor.experience_years or 5 }}" min="1" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+      <div>
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Phone</label>
+        <input type="tel" name="phone" value="{{ current_user.phone or '' }}" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+      <div>
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 6px;">City</label>
+        <input type="text" name="city" value="{{ current_user.city or 'Delhi' }}" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+    </div>
+
+    <div style="margin-bottom: 24px;">
+      <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Doctor Biography & Clinical Focus</label>
+      <textarea name="bio" rows="4" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">{{ doctor.bio or '' }}</textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="padding: 12px 24px; font-size: 0.95rem;">
+      <i class="fa-solid fa-floppy-disk"></i> Update Profile Information
+    </button>
+  </form>
+</div>
+{% endblock %}

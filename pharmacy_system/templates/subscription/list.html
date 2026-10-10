@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}My Subscriptions{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">My Subscriptions</h1>
+
+<table class="table">
+    <thead><tr><th>Medicine</th><th>Quantity</th><th>Interval (days)</th><th>Next Run</th><th>Active</th></tr></thead>
+    <tbody>
+    {% for s in subscriptions %}
+    <tr>
+        <td>{{ s.medicine.name }}</td>
+        <td>{{ s.quantity }}</td>
+        <td>{{ s.interval_days }}</td>
+        <td>{{ s.next_run }}</td>
+        <td>{{ 'Yes' if s.active else 'No' }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

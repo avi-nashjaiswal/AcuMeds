@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Shopkeeper{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>👤 Profile</h2>
+    <form method="POST">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" class="form-control" name="full_name" value="{{ user.full_name }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Phone</label>
+                    <input type="text" class="form-control" name="phone" value="{{ user.phone }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Shop Name</label>
+                    <input type="text" class="form-control" name="shop_name" value="{{ shopkeeper.shop_name }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">License Number</label>
+                    <input type="text" class="form-control" name="license_number" value="{{ shopkeeper.license_number }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Contact Number</label>
+                    <input type="text" class="form-control" name="contact_number" value="{{ shopkeeper.contact_number }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">City</label>
+                    <input type="text" class="form-control" name="city" value="{{ shopkeeper.city }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">New Password</label>
+                    <input type="password" class="form-control" name="password" placeholder="Leave blank to keep unchanged">
+                </div>
+                <button type="submit" class="btn btn-primary">Update Profile</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

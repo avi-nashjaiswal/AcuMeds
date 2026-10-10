@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile - AcuMeds{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-user-circle"></i> My Profile</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('main_bp_final_unique.update_profile') }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" value="{{ user.username }}" disabled>
+                            <small class="form-text text-muted">Cannot be changed</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" value="{{ user.email }}" disabled>
+                            <small class="form-text text-muted">Cannot be changed</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="full_name" name="full_name" value="{{ user.full_name or '' }}">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label for="age" class="form-label">Age</label>
+                            <input type="number" class="form-control" id="age" name="age" min="0" max="120" value="{{ user.age or '' }}">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="gender" class="form-label">Gender</label>
+                            <select id="gender" name="gender" class="form-select">
+                                <option value="">Prefer not to say</option>
+                                <option value="Male" {% if user.gender=='Male' %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if user.gender=='Female' %}selected{% endif %}>Female</option>
+                                <option value="Other" {% if user.gender=='Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" 
+                               value="{{ user.phone or '' }}"
+                               pattern="^[\d\s\-\(\)]*$"
+                               placeholder="e.g., (123) 456-7890 or 123-456-7890"
+                               title="Phone number should contain only digits, spaces, hyphens, and parentheses (minimum 10 digits)">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Shipping Address</label>
+                        <textarea class="form-control" id="address" name="address" rows="3">{{ user.address or '' }}</textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Profile
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- User Quick Actions & Orders Hub -->
+        <div class="card shadow-sm mt-4 border-0 rounded-4 overflow-hidden">
+            <div class="card-header bg-white border-bottom py-3 px-4">
+                <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-th-large text-primary me-2"></i> My Healthcare Hub</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <a href="{{ url_for('order.order_history') }}" class="btn btn-outline-primary w-100 p-3 rounded-3 text-start d-flex align-items-center justify-content-between shadow-sm">
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark"><i class="fas fa-box-open text-primary me-2"></i> My Order History</h6>
+                                <small class="text-muted">View past medicine orders & tax invoices</small>
+                            </div>
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{{ url_for('doctor_consultation.my_appointments') }}" class="btn btn-outline-info w-100 p-3 rounded-3 text-start d-flex align-items-center justify-content-between shadow-sm">
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark"><i class="fas fa-calendar-check text-info me-2"></i> Doctor Appointments</h6>
+                                <small class="text-muted">Video consultations & clinic bookings</small>
+                            </div>
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{{ url_for('doctor_consultation.my_prescriptions') }}" class="btn btn-outline-success w-100 p-3 rounded-3 text-start d-flex align-items-center justify-content-between shadow-sm">
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark"><i class="fas fa-file-prescription text-success me-2"></i> Digital Prescriptions</h6>
+                                <small class="text-muted">Doctor verified Rx & medication records</small>
+                            </div>
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{{ url_for('recommendation.recommendation_history') }}" class="btn btn-outline-warning w-100 p-3 rounded-3 text-start d-flex align-items-center justify-content-between shadow-sm">
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark"><i class="fas fa-robot text-warning me-2"></i> AI Recommendation History</h6>
+                                <small class="text-muted">Past symptom diagnosis & dosage guides</small>
+                            </div>
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fas fa-shield-alt"></i> Account Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Member Since:</strong> {{ user.created_at.strftime('%B %d, %Y') if user.created_at else 'N/A' }}</p>
+                <p><strong>Account Status:</strong> <span class="badge bg-success">Active</span></p>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <a href="{{ url_for('main_bp_final_unique.dashboard') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

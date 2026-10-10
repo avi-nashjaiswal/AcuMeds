@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Medicines Management - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="page-header mt-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-pills"></i> Medicines Management</h1>
+            <p class="text-muted">View and manage all medicines in the system</p>
+        </div>
+        <div>
+            <span class="badge bg-primary me-2">
+                <i class="fas fa-list"></i> {{ total_medicines }} Total
+            </span>
+            <span class="badge bg-info">
+                <i class="fas fa-store"></i> {{ total_shopkeepers }} Sellers
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('dashboard.medicines') }}" class="row g-3">
+            <div class="col-md-4">
+                <input type="text" class="form-control" name="search" placeholder="Search by medicine name..."
+                    value="{{ request.args.get('search', '') }}">
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" name="shopkeeper" onchange="this.form.submit()">
+                    <option value="">All Shopkeepers</option>
+                    {% for shop in shopkeepers %}
+                    <option value="{{ shop.id }}" {% if request.args.get('shopkeeper') == shop.id|string %}selected{% endif %}>
+                        {{ shop.shop_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Medicines Table -->
+{% if medicines %}
+<div class="table-responsive card">
+    <table class="table table-hover mb-0">
+        <thead class="table-light">
+            <tr>
+                <th width="25%">Medicine Name</th>
+                <th width="15%">Shopkeeper</th>
+                <th width="12%">Price</th>
+                <th width="10%">Stock</th>
+                <th width="15%">Category</th>
+                <th width="15%">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for medicine in medicines %}
+            <tr>
+                <td>
+                    <strong>{{ medicine.name }}</strong>
+                    <br/>
+                    <small class="text-muted">{{ medicine.description[:45] }}...</small>
+                    {% if medicine.strength_value and medicine.strength_unit %}
+                    <div class="mt-1">
+                        <span class="badge power-badge">Power: {{ medicine.strength_value }} {{ medicine.strength_unit }}</span>
+                    </div>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="?shopkeeper={{ medicine.shopkeeper_id }}">
+                        {{ medicine.shopkeeper.shop_name }}
+                    </a>
+                </td>
+                <td>
+                    <span class="badge bg-success">₹{{ medicine.price }}</span>
+                </td>
+                <td>
+                    {% if medicine.stock_quantity < 5 %}
+                        <span class="badge bg-danger">Low: {{ medicine.stock_quantity }}</span>
+                    {% elif medicine.stock_quantity < 20 %}
+                        <span class="badge bg-warning">{{ medicine.stock_quantity }}</span>
+                    {% else %}
+                        <span class="badge bg-success">{{ medicine.stock_quantity }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge bg-secondary">{{ medicine.category }}</span>
+                </td>
+                <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button class="btn btn-info" data-bs-toggle="modal" 
+                            data-bs-target="#viewModal{{ medicine.id }}" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-danger" data-bs-toggle="modal" 
+                            data-bs-target="#deleteModal{{ medicine.id }}" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+
+            <!-- View Modal -->
+            <div class="modal fade" id="viewModal{{ medicine.id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">{{ medicine.name }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <strong>Shopkeeper:</strong>
+                                </div>
+                                <div class="col-sm-8">
+                                    {{ medicine.shopkeeper.shop_name }}
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <strong>Description:</strong>
+                                </div>
+                                <div class="col-sm-8">
+                                    {{ medicine.description }}
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <strong>Category:</strong>
+                                </div>
+                                <div class="col-sm-8">
+                                    <span class="badge bg-secondary">{{ medicine.category }}</span>
+                                </div>
+                            </div>
+                            {% if medicine.strength_value and medicine.strength_unit %}
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <strong>Power:</strong>
+                                </div>
+                                <div class="col-sm-8">
+                                    <span class="badge power-badge">{{ medicine.strength_value }} {{ medicine.strength_unit }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <strong>Price:</strong>
+                                </div>
+                                <div class="col-sm-8">
+                                    ₹{{ medicine.price }}
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <strong>Stock:</strong>
+                                </div>
+                                <div class="col-sm-8">
+                                    {{ medicine.stock_quantity }} units
+                                </div>
+                            </div>
+                            {% if medicine.requires_prescription %}
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <strong>Requires:</strong>
+                                </div>
+                                <div class="col-sm-8">
+                                    <span class="badge bg-warning">Prescription</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Modal -->
+            <div class="modal fade" id="deleteModal{{ medicine.id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title"><i class="fas fa-trash text-danger"></i> Delete Medicine</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Are you sure you want to delete <strong>{{ medicine.name }}</strong>?</p>
+                            <p class="text-danger"><small><i class="fas fa-exclamation-triangle"></i> This action cannot be undone. Orders containing this medicine will be affected.</small></p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <form method="POST" action="{{ url_for('dashboard.delete_medicine', med_id=medicine.id) }}" style="display: inline;">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash"></i> Yes, Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+{% if medicines|length >= 20 %}
+<nav class="mt-4" aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        <li class="page-item"><a class="page-link" href="#">Previous</a></li>
+        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+        <li class="page-item"><a class="page-link" href="#">2</a></li>
+        <li class="page-item"><a class="page-link" href="#">3</a></li>
+        <li class="page-item"><a class="page-link" href="#">Next</a></li>
+    </ul>
+</nav>
+{% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        padding: 20px 0;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .power-badge {
+        background: #fff3cd;
+        color: #7a5a00;
+        border: 1px solid #ffe8a1;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}

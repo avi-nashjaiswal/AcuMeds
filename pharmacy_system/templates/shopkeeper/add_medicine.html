@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Add Medicine - AcuMeds Shopkeeper{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">➕ Add New Medicine</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" novalidate class="needs-validation">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Medicine Name *</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="category" class="form-label">Category *</label>
+                                <select class="form-select" id="category" name="category" required>
+                                    <option value="">Select Category</option>
+                                    <option value="Painkillers">Painkillers</option>
+                                    <option value="Antibiotics">Antibiotics</option>
+                                    <option value="Cold & Cough">Cold & Cough</option>
+                                    <option value="Antacids">Antacids</option>
+                                    <option value="Vitamins">Vitamins</option>
+                                    <option value="Antihistamines">Antihistamines</option>
+                                    <option value="Diabetes">Diabetes</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" placeholder="Brief description of the medicine"></textarea>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="strength_value" class="form-label">Power (Strength)</label>
+                                <input type="number" class="form-control" id="strength_value" name="strength_value" step="0.01" min="0" placeholder="e.g., 500">
+                                <small class="text-muted">Tablets: mg/mcg. Syrups: mg/5ml.</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="strength_unit" class="form-label">Unit</label>
+                                <select class="form-select" id="strength_unit" name="strength_unit">
+                                    <option value="">Select Unit</option>
+                                    <option value="mg">mg</option>
+                                    <option value="mcg">mcg</option>
+                                    <option value="g">g</option>
+                                    <option value="mg/5ml">mg/5ml</option>
+                                    <option value="mg/ml">mg/ml</option>
+                                    <option value="IU">IU</option>
+                                    <option value="ml">ml</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="price" class="form-label">Price (₹) *</label>
+                                <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="stock_quantity" class="form-label">Stock Quantity *</label>
+                                <input type="number" class="form-control" id="stock_quantity" name="stock_quantity" min="0" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="side_effects" class="form-label">Side Effects</label>
+                            <textarea class="form-control" id="side_effects" name="side_effects" rows="2" placeholder="List common side effects"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="usage_instructions" class="form-label">Usage Instructions</label>
+                            <textarea class="form-control" id="usage_instructions" name="usage_instructions" rows="2" placeholder="How to use this medicine"></textarea>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="requires_prescription" name="requires_prescription">
+                            <label class="form-check-label" for="requires_prescription">
+                                Requires Prescription
+                            </label>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg flex-grow-1">Add Medicine</button>
+                            <a href="{{ url_for('shopkeeper.dashboard') }}" class="btn btn-secondary btn-lg">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    border-radius: 12px;
+}
+</style>
+{% endblock %}

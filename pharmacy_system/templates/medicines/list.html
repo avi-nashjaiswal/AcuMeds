@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Medicines - AcuMeds{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="fas fa-pills"></i> Browse Medicines</h1>
+    </div>
+    <div class="col-md-4">
+        <form method="GET" class="d-flex">
+            <input type="text" name="search" class="form-control me-2" placeholder="Search medicines..." value="{{ search_query }}">
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="btn-group" role="group">
+            <a href="{{ url_for('medicine.list_medicines') }}" class="btn btn-outline-secondary {% if not selected_category %}active{% endif %}">
+                All Categories
+            </a>
+            {% for cat in categories %}
+                <a href="{{ url_for('medicine.list_medicines', category=cat) }}" 
+                   class="btn btn-outline-secondary {% if selected_category == cat %}active{% endif %}">
+                    {{ cat }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    {% if medicines %}
+        {% for medicine in medicines %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <!-- Medicine Image -->
+                {% set fallback_num = ((medicine.id - 1) % 4) + 1 %}
+                {% set fallback_image = url_for('static', filename='uploads/medicines/medicine_main' ~ fallback_num ~ '.png') %}
+                {% if medicine.image and medicine.image != 'images/medicine-default.png' %}
+                    {% if medicine.image.startswith('http://') or medicine.image.startswith('https://') %}
+                        {% set card_image = medicine.image %}
+                    {% else %}
+                        {% set card_image = url_for('static', filename=medicine.image) %}
+                    {% endif %}
+                {% else %}
+                    {% set card_image = fallback_image %}
+                {% endif %}
+                <div style="height: 220px; overflow: hidden; background: linear-gradient(135deg, #f7f9fc 0%, #e8eef8 100%); display: flex; align-items: center; justify-content: center;">
+                    <img src="{{ card_image }}" 
+                         alt="{{ medicine.name }}" 
+                         onerror="this.src='{{ fallback_image }}'"
+                         style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                </div>
+                
+                <div class="card-body">
+                    <h5 class="card-title">{{ medicine.name }}</h5>
+                    <p class="text-muted"><small>{{ medicine.category }}</small></p>
+                    {% if medicine.strength_value and medicine.strength_unit %}
+                        <span class="badge power-badge mb-2">Power: {{ medicine.strength_value }} {{ medicine.strength_unit }}</span>
+                    {% endif %}
+                    <p class="card-text">{{ medicine.description[:80] }}...</p>
+                    
+                    <div class="mb-3">
+                        <p class="card-text">
+                            <strong class="text-success">₹{{ "%.2f"|format(medicine.price) }}</strong>
+                        </p>
+                        {% if medicine.requires_prescription %}
+                            <span class="badge bg-warning">Requires Prescription</span>
+                        {% endif %}
+                        {% if medicine.stock_quantity <= 0 %}
+                            <span class="badge bg-danger">Out of Stock</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('medicine.view_medicine', medicine_id=medicine.id) }}" 
+                           class="btn btn-primary btn-sm">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                        {% if medicine.stock_quantity > 0 %}
+                            <form method="POST" action="{{ url_for('cart.add_to_cart', medicine_id=medicine.id) }}">
+                                <input type="hidden" name="quantity" value="1">
+                                {% if medicine.shopkeeper_id %}
+                                    <input type="hidden" name="shopkeeper_id" value="{{ medicine.shopkeeper_id }}">
+                                {% endif %}
+                                <button type="submit" class="btn btn-success btn-sm w-100">
+                                    <i class="fas fa-shopping-cart"></i> Add to Cart
+                                </button>
+                            </form>
+                        {% else %}
+                            <button type="button" class="btn btn-secondary btn-sm" disabled>
+                                <i class="fas fa-ban"></i> Out of Stock
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <p class="mb-0">No medicines found. Try adjusting your search or category filter.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

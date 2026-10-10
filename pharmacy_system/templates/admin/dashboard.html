@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - AcuMeds{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h1><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
+    <p class="text-muted">Manage medicines, orders, and users</p>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-primary">
+            <div class="card-body">
+                <div class="text-primary font-weight-bold text-uppercase mb-1">Total Medicines</div>
+                <div class="h3 mb-0">{{ total_medicines }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-success">
+            <div class="card-body">
+                <div class="text-success font-weight-bold text-uppercase mb-1">Total Orders</div>
+                <div class="h3 mb-0">{{ total_orders }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-info">
+            <div class="card-body">
+                <div class="text-info font-weight-bold text-uppercase mb-1">Total Users</div>
+                <div class="h3 mb-0">{{ total_users }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-warning">
+            <div class="card-body">
+                <div class="text-warning font-weight-bold text-uppercase mb-1">Total Revenue</div>
+                <div class="h3 mb-0">₹{{ "%.2f"|format(total_revenue) }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="{{ url_for('admin.add_medicine') }}" class="btn btn-primary me-2">
+                    <i class="fas fa-plus"></i> Add Medicine
+                </a>
+                <a href="{{ url_for('admin.manage_medicines') }}" class="btn btn-info me-2">
+                    <i class="fas fa-pills"></i> Manage Medicines
+                </a>
+                <a href="{{ url_for('admin.manage_orders') }}" class="btn btn-success me-2">
+                    <i class="fas fa-boxes"></i> Manage Orders
+                </a>
+                <a href="{{ url_for('admin.manage_shopkeepers') }}" class="btn btn-warning">
+                    <i class="fas fa-store"></i> Manage Shopkeepers
+                </a>
+                <a href="{{ url_for('admin.manage_delivery_agents') }}" class="btn btn-outline-dark ms-2">
+                    <i class="fas fa-truck"></i> Delivery Agents
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Orders -->
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Recent Orders</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Items</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                    <tr>
+                        <td><strong>#{{ order.id }}</strong></td>
+                        <td>{{ order.user.full_name | default(order.user.username) }}</td>
+                        <td>{{ order.order_items|length }}</td>
+                        <td>₹{{ "%.2f"|format(order.total_amount) }}</td>
+                        <td>
+                            <span class="badge bg-{% if order.status == 'Delivered' %}success{% elif order.status == 'Shipped' %}info{% elif order.status == 'Confirmed' %}primary{% else %}warning{% endif %}">
+                                {{ order.status }}
+                            </span>
+                        </td>
+                        <td>{{ order.order_date.strftime('%m/%d/%Y') }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.manage_orders') }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <a href="{{ url_for('admin.manage_orders') }}" class="btn btn-outline-primary">View All Orders</a>
+    </div>
+</div>
+{% endblock %}

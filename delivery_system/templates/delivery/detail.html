@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+
+{% block title %}Delivery Detail - AcuMeds Delivery{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('delivery.delivery_dashboard') }}">Delivery Dashboard</a></li>
+        <li class="breadcrumb-item active">Order #{{ order.id }}</li>
+    </ol>
+</nav>
+
+<h1 class="mb-4"><i class="fas fa-box"></i> Order #{{ order.id }}</h1>
+
+{% if delivery.status != 'Delivered' %}
+<div class="alert alert-primary py-2 mb-3">
+    <strong>Route Steps:</strong> 1) <strong>Start Navigation</strong> dabayein, 2) customer tak pahunch kar delivery status update karein.
+</div>
+{% endif %}
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Delivery Status</h5>
+                <span class="badge bg-{% if delivery.status == 'Delivered' %}success{% elif delivery.status == 'Out for Delivery' %}info{% elif delivery.status == 'Picked Up' %}primary{% else %}secondary{% endif %} p-2">
+                    {{ delivery.status }}
+                </span>
+                <div class="text-muted small mt-2">Assigned: {{ delivery.assigned_at.strftime('%m/%d/%Y %H:%M') if delivery.assigned_at else '-' }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Cash to Collect</h5>
+                <div class="h4 mb-0">INR {{ "%.2f"|format(delivery.cash_to_collect or 0) }}</div>
+                <div class="text-muted small">Delivery Fee: INR {{ "%.2f"|format(delivery.delivery_fee or 0) }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Last Location</h5>
+                <div class="small">Lat: {{ delivery.last_lat if delivery.last_lat is not none else '-' }}</div>
+                <div class="small">Lng: {{ delivery.last_lng if delivery.last_lng is not none else '-' }}</div>
+                <div class="text-muted small">{{ delivery.last_location_at.strftime('%m/%d/%Y %H:%M') if delivery.last_location_at else '-' }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Customer Details</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Name:</strong> {{ order.user.full_name or order.user.username }}</p>
+                <p><strong>Phone:</strong> {{ order.user.phone or '-' }}</p>
+                <p><strong>Address:</strong> {{ order.delivery_address or order.user.address or '-' }}</p>
+                {% if delivery.status == 'Delivered' %}
+                    <p class="text-muted small mb-0">Delivery complete. Map actions are hidden.</p>
+                {% elif map_url %}
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ map_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Customer ka exact pin dekhein. Open destination pin on map.">
+                            <i class="fas fa-map-marker-alt"></i> View Pin
+                        </a>
+                        {% if directions_url %}
+                            <a href="{{ directions_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Navigation start karke customer tak route follow karein. Start turn-by-turn navigation.">
+                                <i class="fas fa-route"></i> Start Navigation
+                            </a>
+                        {% endif %}
+                    </div>
+                    <p class="text-muted small mt-2 mb-0">Sabse pehle <strong>Start Navigation</strong> use karein. Agar map load na ho to <strong>View Pin</strong> try karein. Button par hover ya press-hold karke help text dekhein.</p>
+                {% else %}
+                    <p class="text-muted small mb-0">Google Maps location unavailable for this order. Pehle location update karein.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Shopkeeper Details</h5>
+            </div>
+            <div class="card-body">
+                {% if order.shopkeeper %}
+                    <p><strong>Shop:</strong> {{ order.shopkeeper.shop_name }}</p>
+                    <p><strong>City:</strong> {{ order.shopkeeper.city or '-' }}</p>
+                    <p><strong>Contact:</strong> {{ order.shopkeeper.contact_number or '-' }}</p>
+                {% else %}
+                    <p class="text-muted mb-0">No shopkeeper assigned.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Payment</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Method:</strong> {{ order.payment_method }}</p>
+                <p><strong>Status:</strong> {{ order.payment_status }}</p>
+                <p><strong>Total:</strong> INR {{ "%.2f"|format(order.total_amount) }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if delivery.status == 'Delivered' %}
+<div class="alert alert-success">
+    <strong>Delivery completed.</strong>
+    {% if delivery.delivered_at %}
+        Delivered at {{ delivery.delivered_at.strftime('%m/%d/%Y %H:%M') }}.
+    {% endif %}
+    {% if delivery.otp_verified_at %}
+        OTP verified at {{ delivery.otp_verified_at.strftime('%m/%d/%Y %H:%M') }}.
+    {% endif %}
+</div>
+{% else %}
+<div class="row">
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Update Status</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('delivery.delivery_update_status', delivery_id=delivery.id) }}">
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select" required>
+                            <option value="Picked Up">Picked Up</option>
+                            <option value="Out for Delivery">Out for Delivery</option>
+                            <option value="Failed">Failed</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Note (optional)</label>
+                        <textarea name="note" rows="2" class="form-control"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Update</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Update Location</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('delivery.delivery_update_location', delivery_id=delivery.id) }}" id="location-update-form">
+                    <div class="mb-3">
+                        <label class="form-label">Latitude</label>
+                        <input type="text" name="lat" id="location-lat" class="form-control" placeholder="12.9716" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Longitude</label>
+                        <input type="text" name="lng" id="location-lng" class="form-control" placeholder="77.5946" required>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="button" id="gps-fill-btn" class="btn btn-outline-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Aapki current GPS location lekar auto-save karega. Capture and save your live location.">Use My Current Location</button>
+                    </div>
+                    <p class="text-muted small mt-2 mb-0" id="gps-status">Tip: GPS on karke button dabayein, location auto-capture ke baad auto-save ho jayegi.</p>
+                    <div id="gps-loading" class="alert alert-info py-2 mt-2 mb-2 d-none" role="status" aria-live="polite">
+                        <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                        <span>Location capture ho rahi hai, please wait...</span>
+                    </div>
+                    <button type="submit" class="btn btn-outline-primary w-100">Save Location</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Verify OTP</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('delivery.delivery_verify_otp', delivery_id=delivery.id) }}">
+                    <div class="mb-3">
+                        <label class="form-label">Customer OTP (6-digit)</label>
+                        <input type="text" name="otp_code" class="form-control" maxlength="6" pattern="\d{6}" inputmode="numeric" placeholder="e.g. 123456" required>
+                        <small class="text-muted">Customer ke order page par jo OTP dikh raha hai, wahi yahan enter karein.</small>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Complete Delivery</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card shadow-sm">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Status Timeline</h5>
+    </div>
+    <div class="card-body">
+        {% if updates %}
+            <ul class="list-group">
+                {% for update in updates %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>{{ update.status }}</span>
+                        <span class="text-muted small">{{ update.created_at.strftime('%m/%d/%Y %H:%M') }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted mb-0">No updates yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+            new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        const gpsButton = document.getElementById('gps-fill-btn');
+        const locationForm = document.getElementById('location-update-form');
+        const latInput = document.getElementById('location-lat');
+        const lngInput = document.getElementById('location-lng');
+        const statusText = document.getElementById('gps-status');
+        const loadingBox = document.getElementById('gps-loading');
+
+        if (!gpsButton || !locationForm || !latInput || !lngInput || !statusText || !loadingBox) {
+            return;
+        }
+
+        gpsButton.addEventListener('click', function () {
+            if (!navigator.geolocation) {
+                statusText.textContent = 'Your device/browser does not support geolocation.';
+                statusText.className = 'text-danger small mt-2 mb-0';
+                return;
+            }
+
+            gpsButton.disabled = true;
+            gpsButton.textContent = 'Fetching location...';
+            statusText.textContent = 'Please allow location permission.';
+            statusText.className = 'text-info small mt-2 mb-0';
+            loadingBox.classList.remove('d-none');
+
+            navigator.geolocation.getCurrentPosition(
+                function (position) {
+                    const lat = Number(position.coords.latitude).toFixed(6);
+                    const lng = Number(position.coords.longitude).toFixed(6);
+
+                    latInput.value = lat;
+                    lngInput.value = lng;
+                    statusText.textContent = 'Current location captured. Auto-saving...';
+                    statusText.className = 'text-success small mt-2 mb-0';
+                    gpsButton.disabled = false;
+                    gpsButton.textContent = 'Use My Current Location';
+                    locationForm.submit();
+                },
+                function (error) {
+                    let message = 'Unable to fetch location.';
+                    if (error && error.code === 1) {
+                        message = 'Location permission denied. Browser permission allow karein.';
+                    } else if (error && error.code === 2) {
+                        message = 'Location unavailable. GPS/network check karein.';
+                    } else if (error && error.code === 3) {
+                        message = 'Location request timed out. Try again.';
+                    }
+
+                    statusText.textContent = message;
+                    statusText.className = 'text-danger small mt-2 mb-0';
+                    gpsButton.disabled = false;
+                    gpsButton.textContent = 'Use My Current Location';
+                    loadingBox.classList.add('d-none');
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                }
+            );
+        });
+    });
+</script>
+{% endblock %}

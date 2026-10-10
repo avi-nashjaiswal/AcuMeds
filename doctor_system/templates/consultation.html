@@ -1,0 +1,493 @@
+{% extends "base.html" %}
+
+{% block title %}Live Consultation - {{ appointment.patient_name }}{% endblock %}
+{% block page_title %}Consultation Room: {{ appointment.patient_name or 'Patient' }}{% endblock %}
+
+{% block extra_head %}
+<!-- PeerJS for Real-Time Peer-to-Peer Video & Audio Call -->
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+  .doc-call-stage {
+    position: relative;
+    background: #020617;
+    border-radius: 16px;
+    overflow: hidden;
+    height: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #docRemoteVideo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .doc-local-pip {
+    position: absolute;
+    bottom: 75px;
+    right: 16px;
+    width: 140px;
+    height: 105px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid #10b981;
+    background: #000;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+    z-index: 10;
+  }
+  #docLocalVideo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+  }
+  .doc-controls-bar {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(10px);
+    padding: 8px 16px;
+    border-radius: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    z-index: 20;
+  }
+  .doc-ctrl-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: white;
+  }
+  .doc-ctrl-btn.btn-active {
+    background: #334155;
+  }
+  .doc-ctrl-btn.btn-active:hover {
+    background: #475569;
+  }
+  .doc-ctrl-btn.btn-muted {
+    background: #ef4444 !important;
+  }
+  .doc-ctrl-btn.btn-end {
+    background: #dc2626;
+  }
+  .doc-ctrl-btn.btn-end:hover {
+    background: #b91c1c;
+  }
+  .doc-badge-live {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(8px);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 10;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 24px;">
+  <!-- Left Side: Live Consultation View & Video / Clinical Notes -->
+  <div>
+    <!-- Video / Consultation Header -->
+    <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 20px;">
+      <div style="background: var(--dark); color: white; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; animation: pulse 1.5s infinite;"></div>
+          {% if 'audio' in (appointment.consultation_type or '')|lower %}
+            <strong style="font-size: 0.95rem;"><i class="fa-solid fa-phone me-1"></i> Live Audio Room</strong>
+          {% else %}
+            <strong style="font-size: 0.95rem;"><i class="fa-solid fa-video me-1"></i> Live Video Room</strong>
+          {% endif %}
+          <span style="font-size: 0.75rem; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 6px;">#{{ appointment.id }}</span>
+        </div>
+
+        <!-- Fallbacks Bar: Phone Call / WhatsApp / Jitsi -->
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          {% set pphone = appointment.patient_phone or (appointment.patient.phone if appointment.patient else '') %}
+          {% set pphone_clean = pphone|replace(' ', '')|replace('-', '')|replace('+', '') %}
+          {% if pphone_clean|length == 10 %}{% set pphone_clean = '91' ~ pphone_clean %}{% endif %}
+
+          {% if pphone %}
+            <a href="tel:{{ pphone }}" class="btn btn-sm" style="background: #10b981; color: white; font-weight: 600; padding: 6px 12px; font-size: 0.8rem;" title="Call Patient Direct Phone">
+              <i class="fa-solid fa-phone-volume"></i> {{ pphone }}
+            </a>
+            <a href="https://wa.me/{{ pphone_clean }}?text=Hello%20{{ (appointment.patient_name or 'Patient')|urlencode }},%20Dr.%20{{ (doctor.user.full_name or 'Doctor')|urlencode }}%20here%20for%20our%20scheduled%20consultation." target="_blank" class="btn btn-sm" style="background: #25d366; color: white; font-weight: 600; padding: 6px 12px; font-size: 0.8rem;" title="WhatsApp Patient">
+              <i class="fa-brands fa-whatsapp"></i> WhatsApp
+            </a>
+          {% endif %}
+          {% if appointment.meeting_link %}
+            <a href="{{ appointment.meeting_link }}" target="_blank" class="btn btn-sm" style="background: var(--accent); color: white; padding: 6px 12px; font-size: 0.8rem;" title="Open External Jitsi Room in new tab">
+              <i class="fa-solid fa-up-right-from-square"></i> External Room
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Real WebRTC Call Stage (No blocked iframe) -->
+      <div class="doc-call-stage" id="docCallStage">
+        <!-- Live Status Badge -->
+        <div class="doc-badge-live">
+          <div style="width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></div>
+          <span id="docCallStatus">Camera Starting...</span>
+          <span style="color: #94a3b8; margin-left: 6px;" id="docTimer">00:00</span>
+        </div>
+
+        <!-- Waiting Screen (Visible when patient not yet connected) -->
+        <div id="docWaitingScreen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; text-align: center; padding: 20px;">
+          <div style="width: 84px; height: 84px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; margin-bottom: 12px;">
+            {{ (appointment.patient_name or 'P')[0] }}
+          </div>
+          <h4 style="color: white; margin-bottom: 4px; font-size: 1.1rem;">{{ appointment.patient_name or 'Patient' }}</h4>
+          <p style="color: #64748b; font-size: 0.82rem; margin-bottom: 12px; max-width: 280px;">
+            Waiting for patient to enter the consultation room. When patient connects, live video & audio will appear automatically.
+          </p>
+          <div style="display: inline-block; width: 18px; height: 18px; border: 2px solid #38bdf8; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        </div>
+
+        <!-- Remote Video (Patient's camera stream) -->
+        <video id="docRemoteVideo" autoplay playsinline style="display: none;"></video>
+
+        <!-- Local Video PiP (Doctor's camera stream) -->
+        <div class="doc-local-pip" id="docLocalPip" title="Doctor Camera Preview">
+          <video id="docLocalVideo" autoplay playsinline muted></video>
+          <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 2px 6px; color: white; background: rgba(0,0,0,0.7); font-size: 0.65rem; display: flex; justify-content: space-between;">
+            <span>Doctor</span>
+            <i class="fa-solid fa-video" style="color: #10b981;"></i>
+          </div>
+        </div>
+
+        <!-- Bottom Controls Bar -->
+        <div class="doc-controls-bar">
+          <button type="button" class="doc-ctrl-btn btn-active" id="docMicBtn" title="Mute / Unmute Microphone">
+            <i class="fa-solid fa-microphone" id="docMicIcon"></i>
+          </button>
+          <button type="button" class="doc-ctrl-btn btn-active" id="docVideoBtn" title="Turn Camera On / Off">
+            <i class="fa-solid fa-video" id="docVideoIcon"></i>
+          </button>
+          <button type="button" class="doc-ctrl-btn btn-active" id="docScreenBtn" title="Share Screen / Report">
+            <i class="fa-solid fa-desktop"></i>
+          </button>
+          <button type="button" class="doc-ctrl-btn btn-end" id="docEndBtn" title="End Call">
+            <i class="fa-solid fa-phone-slash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Doctor Consultation Notes & AI Assistant -->
+    <div class="card">
+      <div class="card-header">
+        <h2><i class="fa-solid fa-notes-medical" style="color: var(--primary);"></i> Clinical Observations & Diagnosis Notes</h2>
+        <button type="button" id="run-ai-diagnosis-btn" class="btn btn-sm btn-primary">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> AI Clinical Diagnosis
+        </button>
+      </div>
+
+      <!-- AI Diagnosis Result Container -->
+      <div id="ai-diagnosis-results" style="display: none; margin-bottom: 20px;"></div>
+
+      <form method="POST" action="{{ url_for('doctor.update_appointment_status', appointment_id=appointment.id) }}">
+        <input type="hidden" name="status" value="In Consultation">
+        <div style="margin-bottom: 16px;">
+          <label style="font-size: 0.85rem; font-weight: 700; color: #334155; display: block; margin-bottom: 6px;">Doctor's Private Clinical Notes & History</label>
+          <textarea name="notes" rows="4" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.9rem;" placeholder="Record patient symptoms, auscultation findings, differential notes...">{{ appointment.doctor_notes or '' }}</textarea>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <button type="submit" class="btn btn-secondary btn-sm">
+            <i class="fa-solid fa-floppy-disk"></i> Save Notes
+          </button>
+          <a href="{{ url_for('doctor.prescribe', appointment_id=appointment.id) }}" class="btn btn-primary" style="padding: 12px 24px; font-size: 0.95rem;">
+            <i class="fa-solid fa-file-signature"></i> Write & Issue Digital Prescription (Rx)
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Right Side: Patient Profile & Reported Symptoms -->
+  <div>
+    <!-- Patient Card -->
+    <div class="card">
+      <div class="card-header">
+        <h2><i class="fa-solid fa-user" style="color: var(--accent);"></i> Patient Profile</h2>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+        <div style="width: 54px; height: 54px; border-radius: 50%; background: var(--primary-subtle); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700;">
+          {{ appointment.patient_name[0] if appointment.patient_name else (appointment.patient.full_name[0] if appointment.patient else 'P') }}
+        </div>
+        <div>
+          <h3 style="font-size: 1.15rem; margin-bottom: 2px;">{{ appointment.patient_name or (appointment.patient.full_name if appointment.patient else 'Patient') }}</h3>
+          <p style="color: var(--slate-500); font-size: 0.85rem;">{{ appointment.patient_gender or 'N/A' }}, {{ appointment.patient_age or '30' }} years old</p>
+        </div>
+      </div>
+
+      <div style="background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+        <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--slate-500); font-weight: 700; margin-bottom: 8px;">Chief Complaints & Symptoms</div>
+        <div id="consult-symptoms" style="font-size: 0.95rem; color: var(--dark); line-height: 1.5; font-weight: 500;">
+          {{ appointment.symptoms or 'Patient requested general health consultation.' }}
+        </div>
+      </div>
+
+      <!-- Hidden inputs for AI helper -->
+      <input type="hidden" id="patient-symptoms-text" value="{{ appointment.symptoms or '' }}">
+      <input type="hidden" id="patient-age" value="{{ appointment.patient_age or '' }}">
+      <input type="hidden" id="patient-gender" value="{{ appointment.patient_gender or '' }}">
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.85rem; border-top: 1px solid var(--slate-100); padding-top: 14px;">
+        <div>
+          <strong style="color: var(--slate-500);">Contact Phone:</strong>
+          <div>
+            {% if pphone %}
+              <a href="tel:{{ pphone }}" style="color: var(--success); font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                <i class="fa-solid fa-phone-volume"></i> {{ pphone }}
+              </a>
+            {% else %}
+              Not provided
+            {% endif %}
+          </div>
+        </div>
+        <div>
+          <strong style="color: var(--slate-500);">Appointment Date:</strong>
+          <div>{{ appointment.appointment_date }} ({{ appointment.appointment_time }})</div>
+        </div>
+        <div>
+          <strong style="color: var(--slate-500);">Consultation Mode:</strong>
+          <div>{{ appointment.consultation_type }}</div>
+        </div>
+        <div>
+          <strong style="color: var(--slate-500);">Consultation Fee:</strong>
+          <div style="color: var(--success); font-weight: 700;">₹{{ appointment.consultation_fee }} ({{ appointment.payment_status }})</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Past Consultations & Prescriptions for this Patient -->
+    <div class="card">
+      <div class="card-header">
+        <h2><i class="fa-solid fa-clock-rotate-left" style="color: var(--slate-600);"></i> Patient Medical History</h2>
+      </div>
+
+      {% if past_prescriptions %}
+        <div style="margin-bottom: 16px;">
+          <h4 style="font-size: 0.85rem; color: var(--slate-500); text-transform: uppercase; margin-bottom: 8px;">Past Prescriptions</h4>
+          <ul style="list-style: none;">
+            {% for rx in past_prescriptions %}
+              <li style="padding: 10px 12px; background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <strong style="font-size: 0.85rem;">{{ rx.diagnosis }}</strong>
+                  <div style="font-size: 0.75rem; color: var(--slate-500);">{{ rx.prescription_code }} • {{ rx.created_at.strftime('%d %b %Y') }}</div>
+                </div>
+                <a href="{{ url_for('doctor.prescription_view', prescription_id=rx.id) }}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;">View Rx</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% else %}
+        <p style="font-size: 0.85rem; color: var(--slate-500); text-align: center; padding: 12px;">First consultation on record for this patient.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+// Doctor WebRTC Consultation Client
+const DOC_ROOM_ID = "{{ appointment.id }}";
+const DOC_MY_PEER_ID = `acumeds-doc-${DOC_ROOM_ID}`;
+const DOC_PAT_PEER_ID = `acumeds-pat-${DOC_ROOM_ID}`;
+
+let docLocalStream = null;
+let docCurrentCall = null;
+let docIsAudioMuted = false;
+let docIsVideoMuted = false;
+let docTimerSecs = 0;
+let docTimerInterval = null;
+let docPeer = null;
+
+const docRemoteVideo = document.getElementById('docRemoteVideo');
+const docLocalVideo = document.getElementById('docLocalVideo');
+const docWaitingScreen = document.getElementById('docWaitingScreen');
+const docCallStatus = document.getElementById('docCallStatus');
+const docTimer = document.getElementById('docTimer');
+
+const docMicBtn = document.getElementById('docMicBtn');
+const docMicIcon = document.getElementById('docMicIcon');
+const docVideoBtn = document.getElementById('docVideoBtn');
+const docVideoIcon = document.getElementById('docVideoIcon');
+const docEndBtn = document.getElementById('docEndBtn');
+const docScreenBtn = document.getElementById('docScreenBtn');
+
+function startDocTimer() {
+  if (docTimerInterval) return;
+  docTimerInterval = setInterval(() => {
+    docTimerSecs++;
+    const mins = String(Math.floor(docTimerSecs / 60)).padStart(2, '0');
+    const secs = String(docTimerSecs % 60).padStart(2, '0');
+    docTimer.textContent = `${mins}:${secs}`;
+  }, 1000);
+}
+
+async function initDocMedia() {
+  try {
+    docLocalStream = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: true
+    });
+    docLocalVideo.srcObject = docLocalStream;
+    docCallStatus.textContent = "Connecting Room...";
+  } catch (err) {
+    console.warn("Doctor camera/mic warning:", err);
+    try {
+      docLocalStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      docCallStatus.textContent = "Audio Mode Active";
+    } catch (e) {
+      docCallStatus.textContent = "Camera/Mic Blocked";
+    }
+  }
+}
+
+function initDocPeer() {
+  docPeer = new Peer(DOC_MY_PEER_ID, {
+    debug: 1,
+    config: {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+      ]
+    }
+  });
+
+  docPeer.on('open', (id) => {
+    console.log('Doctor Peer opened with ID:', id);
+    docCallStatus.textContent = "Waiting for Patient...";
+    attemptCallPatient();
+  });
+
+  // Handle incoming call from patient
+  docPeer.on('call', (incomingCall) => {
+    console.log('Receiving call from patient');
+    incomingCall.answer(docLocalStream);
+    handleDocStreamCall(incomingCall);
+  });
+
+  docPeer.on('error', (err) => {
+    console.log('Doctor peer error:', err.type);
+    if (err.type === 'peer-unavailable') {
+      docCallStatus.textContent = "Waiting for Patient to join...";
+      setTimeout(attemptCallPatient, 4000);
+    }
+  });
+}
+
+function attemptCallPatient() {
+  if (!docPeer || !docLocalStream) return;
+  try {
+    const call = docPeer.call(DOC_PAT_PEER_ID, docLocalStream);
+    if (call) {
+      handleDocStreamCall(call);
+    }
+  } catch (e) {
+    console.log("Doctor call attempt error:", e);
+  }
+}
+
+function handleDocStreamCall(call) {
+  docCurrentCall = call;
+  call.on('stream', (remoteStream) => {
+    console.log('Patient stream received by Doctor!');
+    docRemoteVideo.srcObject = remoteStream;
+    docRemoteVideo.style.display = 'block';
+    docWaitingScreen.style.display = 'none';
+    docCallStatus.textContent = "🟢 Patient Connected";
+    startDocTimer();
+  });
+
+  call.on('close', () => {
+    docRemoteVideo.style.display = 'none';
+    docWaitingScreen.style.display = 'flex';
+    docCallStatus.textContent = "Patient Disconnected";
+  });
+}
+
+// Doctor Controls
+docMicBtn.addEventListener('click', () => {
+  if (!docLocalStream) return;
+  const audioTrack = docLocalStream.getAudioTracks()[0];
+  if (audioTrack) {
+    docIsAudioMuted = !docIsAudioMuted;
+    audioTrack.enabled = !docIsAudioMuted;
+    docMicBtn.className = docIsAudioMuted ? 'doc-ctrl-btn btn-muted' : 'doc-ctrl-btn btn-active';
+    docMicIcon.className = docIsAudioMuted ? 'fa-solid fa-microphone-slash' : 'fa-solid fa-microphone';
+  }
+});
+
+docVideoBtn.addEventListener('click', () => {
+  if (!docLocalStream) return;
+  const videoTrack = docLocalStream.getVideoTracks()[0];
+  if (videoTrack) {
+    docIsVideoMuted = !docIsVideoMuted;
+    videoTrack.enabled = !docIsVideoMuted;
+    docVideoBtn.className = docIsVideoMuted ? 'doc-ctrl-btn btn-muted' : 'doc-ctrl-btn btn-active';
+    docVideoIcon.className = docIsVideoMuted ? 'fa-solid fa-video-slash' : 'fa-solid fa-video';
+  }
+});
+
+docScreenBtn.addEventListener('click', async () => {
+  try {
+    const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+    const screenTrack = screenStream.getVideoTracks()[0];
+    if (docCurrentCall && docCurrentCall.peerConnection) {
+      const sender = docCurrentCall.peerConnection.getSenders().find(s => s.track.kind === 'video');
+      if (sender) sender.replaceTrack(screenTrack);
+    }
+    docLocalVideo.srcObject = screenStream;
+    screenTrack.onended = () => {
+      const originalTrack = docLocalStream.getVideoTracks()[0];
+      if (docCurrentCall && docCurrentCall.peerConnection) {
+        const sender = docCurrentCall.peerConnection.getSenders().find(s => s.track.kind === 'video');
+        if (sender) sender.replaceTrack(originalTrack);
+      }
+      docLocalVideo.srcObject = docLocalStream;
+    };
+  } catch (err) {
+    console.log("Doctor screen share cancelled:", err);
+  }
+});
+
+docEndBtn.addEventListener('click', () => {
+  if (confirm('End live consultation? You can proceed to write the digital prescription.')) {
+    if (docLocalStream) {
+      docLocalStream.getTracks().forEach(t => t.stop());
+    }
+    if (docCurrentCall) docCurrentCall.close();
+    if (docPeer) docPeer.destroy();
+    window.location.href = "{{ url_for('doctor.prescribe', appointment_id=appointment.id) }}";
+  }
+});
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initDocMedia();
+  initDocPeer();
+});
+</script>
+{% endblock %}

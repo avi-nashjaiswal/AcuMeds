@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule & Fee Settings{% endblock %}
+{% block page_title %}Consultation Schedule & Practice Settings{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 760px; margin: 0 auto;">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-clock" style="color: var(--primary);"></i> Availability, Consultation Fee & Clinic</h2>
+  </div>
+
+  <form method="POST" action="{{ url_for('doctor.schedule') }}">
+    <!-- Online Availability Switch -->
+    <div style="background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 12px; padding: 18px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h4 style="font-size: 1rem; color: var(--dark); margin-bottom: 4px;">Accepting New Online Consultations</h4>
+        <p style="font-size: 0.85rem; color: var(--slate-500);">Toggle your availability status on the patient booking portal.</p>
+      </div>
+      <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+        <input type="checkbox" name="is_available" value="1" {% if doctor.is_available %}checked{% endif %} style="width: 22px; height: 22px; accent-color: var(--primary);">
+        <strong style="color: var(--primary);">Available Now</strong>
+      </label>
+    </div>
+
+    <!-- Consultation Fee -->
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Consultation Fee Per Session (₹ INR)</label>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 1.2rem; font-weight: 800; color: var(--primary);">₹</span>
+        <input type="number" name="consultation_fee" min="0" step="50" value="{{ doctor.consultation_fee|round|int }}" style="width: 200px; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; font-weight: 700;">
+      </div>
+    </div>
+
+    <!-- Working Days Selection -->
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 10px;">Available Consultation Days</label>
+      <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+        {% set days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] %}
+        {% set cur_days = doctor.available_days.split(',') if doctor.available_days else [] %}
+        {% for d in days %}
+          <label style="display: inline-flex; align-items: center; gap: 6px; background: var(--slate-50); border: 1px solid #cbd5e1; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 0.88rem; font-weight: 600;">
+            <input type="checkbox" name="available_days" value="{{ d }}" {% if d in cur_days %}checked{% endif %} style="accent-color: var(--primary);">
+            {{ d }}
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Time Slots -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+      <div>
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Daily Start Time</label>
+        <input type="text" name="time_start" value="{{ doctor.available_time_start or '09:00 AM' }}" placeholder="09:00 AM" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+      <div>
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Daily End Time</label>
+        <input type="text" name="time_end" value="{{ doctor.available_time_end or '07:00 PM' }}" placeholder="07:00 PM" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+      </div>
+    </div>
+
+    <!-- Clinic Details -->
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Clinic / Hospital Name</label>
+      <input type="text" name="clinic_name" value="{{ doctor.clinic_name or '' }}" placeholder="AcuMeds Health Clinic" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+    </div>
+
+    <div style="margin-bottom: 24px;">
+      <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Clinic Physical Address</label>
+      <textarea name="clinic_address" rows="2" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;" placeholder="Clinic address for in-person consultation">{{ doctor.clinic_address or '' }}</textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="padding: 12px 24px; font-size: 0.95rem;">
+      <i class="fa-solid fa-floppy-disk"></i> Save Consultation Settings
+    </button>
+  </form>
+</div>
+{% endblock %}

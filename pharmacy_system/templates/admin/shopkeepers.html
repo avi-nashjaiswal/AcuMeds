@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Shopkeepers - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">🏪 Manage Shopkeepers</h1>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Verification</h5>
+                    <h2 class="text-warning">{{ pending_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Approved Shops</h5>
+                    <h2 class="text-success">{{ approved_count }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Shopkeepers Table -->
+    {% if pending_shopkeepers %}
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">⏳ Pending Verification ({{ pending_count }})</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Shop Name</th>
+                        <th>Owner Name</th>
+                        <th>License Number</th>
+                        <th>City</th>
+                        <th>Contact</th>
+                        <th>Email</th>
+                        <th>Registered</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for shopkeeper in pending_shopkeepers %}
+                    <tr>
+                        <td><strong>{{ shopkeeper.shop_name }}</strong></td>
+                        <td>{{ shopkeeper.user.full_name or shopkeeper.user.username }}</td>
+                        <td>{{ shopkeeper.license_number }}</td>
+                        <td>{{ shopkeeper.city or '-' }}</td>
+                        <td>{{ shopkeeper.contact_number or '-' }}</td>
+                        <td>{{ shopkeeper.user.email }}</td>
+                        <td>{{ shopkeeper.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <form method="POST" style="display: inline;">
+                                <button type="submit" class="btn btn-sm btn-success" 
+                                    formaction="{{ url_for('admin.verify_shopkeeper', shopkeeper_id=shopkeeper.id) }}"
+                                    onclick="return confirm('Approve this shop?')">
+                                    ✅ Approve
+                                </button>
+                            </form>
+                            <form method="POST" style="display: inline;">
+                                <button type="submit" class="btn btn-sm btn-danger" 
+                                    formaction="{{ url_for('admin.reject_shopkeeper', shopkeeper_id=shopkeeper.id) }}"
+                                    onclick="return confirm('Reject and delete this shop registration?')">
+                                    ❌ Reject
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Approved Shopkeepers Table -->
+    {% if approved_shopkeepers %}
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">✅ Approved Shops ({{ approved_count }})</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Shop Name</th>
+                        <th>Owner Name</th>
+                        <th>License Number</th>
+                        <th>City</th>
+                        <th>Contact</th>
+                        <th>Email</th>
+                        <th>Medicines</th>
+                        <th>Approved</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for shopkeeper in approved_shopkeepers %}
+                    <tr>
+                        <td><strong>{{ shopkeeper.shop_name }}</strong></td>
+                        <td>{{ shopkeeper.user.full_name or shopkeeper.user.username }}</td>
+                        <td>{{ shopkeeper.license_number }}</td>
+                        <td>{{ shopkeeper.city or '-' }}</td>
+                        <td>{{ shopkeeper.contact_number or '-' }}</td>
+                        <td>{{ shopkeeper.user.email }}</td>
+                        <td>
+                            {% set med_count = shopkeeper.medicines.count() %}
+                            <span class="badge bg-info">{{ med_count }}</span>
+                        </td>
+                        <td>{{ shopkeeper.created_at.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">← Back to Admin Dashboard</a>
+    </div>
+</div>
+
+<style>
+    .card {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .card-header {
+        padding: 1.2rem;
+        font-weight: 600;
+    }
+    .table thead {
+        background-color: #f8f9fa;
+    }
+</style>
+{% endif %}
+{% endblock %}
+{% endblock %}

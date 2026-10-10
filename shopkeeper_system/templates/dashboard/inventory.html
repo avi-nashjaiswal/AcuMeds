@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory Management - Shopkeeper{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-lg-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="fas fa-warehouse"></i> Inventory Management</h1>
+                <p class="text-muted">Manage your medicine stock and monitor inventory levels</p>
+            </div>
+            <a href="/add-medicine" class="btn btn-success btn-lg">
+                <i class="fas fa-plus"></i> Add New Medicine
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Inventory Statistics -->
+<div class="row mb-4" id="stats-loading">
+    <div class="text-center py-4">
+        <div class="spinner-border spinner-border-sm text-primary" role="status">
+            <span class="visually-hidden">Loading stats...</span>
+        </div>
+    </div>
+</div>
+
+<div id="stats-content" style="display: none;">
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Total Medicines</h6>
+                    <h3 class="text-primary" id="stat-total-medicines">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Total Stock</h6>
+                    <h3 class="text-success" id="stat-total-stock">0</h3>
+                    <small class="text-muted">units</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Low Stock</h6>
+                    <h3 class="text-warning" id="stat-low-stock">0</h3>
+                    <small class="text-muted">items</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Critical Stock</h6>
+                    <h3 class="text-danger" id="stat-critical-stock">0</h3>
+                    <small class="text-muted">items</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Low Stock Alerts -->
+    <div id="low-stock-alerts"></div>
+
+    <!-- Inventory Table -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-list"></i> Inventory List</h5>
+                <div>
+                    <input type="text" id="search-input" class="form-control d-inline-block" 
+                           placeholder="Search medicines..." style="width: 200px;">
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="inventory-table">
+                <thead class="table-light">
+                    <tr>
+                        <th>Medicine Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Current Stock</th>
+                        <th>Status</th>
+                        <th>Requires Rx</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-tbody">
+                    <!-- Will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Stock Modal -->
+<div class="modal fade" id="editStockModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Stock</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label" id="modal-medicine-name"></label>
+                    <input type="number" id="new-stock-quantity" class="form-control" placeholder="Enter new stock quantity" min="0">
+                </div>
+                <small class="text-muted" id="modal-current-stock"></small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="save-stock-btn">Update Stock</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let currentMedicineId = null;
+const modal = new bootstrap.Modal(document.getElementById('editStockModal'));
+
+// Load inventory data
+async function loadInventoryStats() {
+    try {
+        const response = await fetch('/api/inventory/stats');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('stat-total-medicines').textContent = data.stats.total_medicines;
+            document.getElementById('stat-total-stock').textContent = data.stats.total_stock;
+            document.getElementById('stat-low-stock').textContent = data.stats.low_stock_count;
+            document.getElementById('stat-critical-stock').textContent = data.stats.critical_stock_count;
+            
+            document.getElementById('stats-loading').style.display = 'none';
+            document.getElementById('stats-content').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading stats:', error);
+    }
+}
+
+async function loadInventoryItems() {
+    try {
+        const response = await fetch('/api/inventory');
+        const data = await response.json();
+        
+        if (data.success) {
+            displayInventoryItems(data.inventory);
+            loadLowStockAlerts();
+        }
+    } catch (error) {
+        console.error('Error loading inventory:', error);
+    }
+}
+
+function displayInventoryItems(items) {
+    const tbody = document.getElementById('inventory-tbody');
+    tbody.innerHTML = '';
+    
+    items.forEach(item => {
+        const row = document.createElement('tr');
+        let stockBadge = '';
+        
+        if (item.low_stock && item.stock_quantity < 5) {
+            stockBadge = `<span class="badge bg-danger">Critical: ${item.stock_quantity}</span>`;
+            row.classList.add('table-danger');
+        } else if (item.low_stock) {
+            stockBadge = `<span class="badge bg-warning text-dark">Low: ${item.stock_quantity}</span>`;
+            row.classList.add('table-warning');
+        } else {
+            stockBadge = `<span class="badge bg-success">OK: ${item.stock_quantity}</span>`;
+        }
+        
+        row.innerHTML = `
+            <td><strong>${item.name}</strong></td>
+            <td>${item.category}</td>
+            <td>₹${item.price.toFixed(2)}</td>
+            <td>${item.stock_quantity} units</td>
+            <td>${stockBadge}</td>
+            <td>
+                ${item.requires_prescription ? 
+                    '<span class="badge bg-danger">Yes (Rx)</span>' : 
+                    '<span class="badge bg-secondary">No (OTC)</span>'
+                }
+            </td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="openEditStockModal(${item.id}, '${item.name}', ${item.stock_quantity})">
+                    <i class="fas fa-edit"></i> Update Stock
+                </button>
+                <a href="/edit-medicine/${item.id}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-pencil"></i> Edit
+                </a>
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+    
+    // Add search functionality
+    document.getElementById('search-input').addEventListener('keyup', function() {
+        const searchValue = this.value.toLowerCase();
+        const rows = tbody.querySelectorAll('tr');
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchValue) ? '' : 'none';
+        });
+    });
+}
+
+async function loadLowStockAlerts() {
+    try {
+        const response = await fetch('/api/inventory/low-stock');
+        const data = await response.json();
+        
+        if (data.success && data.low_stock_items.length > 0) {
+            let alertsHtml = '<div class="row mb-4"><div class="col-12">';
+            
+            data.low_stock_items.forEach(item => {
+                const badgeClass = item.urgency === 'critical' ? 'danger' : 'warning';
+                alertsHtml += `
+                    <div class="alert alert-${badgeClass} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>${item.name}</strong> - Current stock: ${item.current_stock} units
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+            });
+            
+            alertsHtml += '</div></div>';
+            document.getElementById('low-stock-alerts').innerHTML = alertsHtml;
+        }
+    } catch (error) {
+        console.error('Error loading low stock alerts:', error);
+    }
+}
+
+function openEditStockModal(medicineId, medicineName, currentStock) {
+    currentMedicineId = medicineId;
+    document.getElementById('modal-medicine-name').textContent = medicineName;
+    document.getElementById('modal-current-stock').textContent = `Current stock: ${currentStock} units`;
+    document.getElementById('new-stock-quantity').value = currentStock;
+    modal.show();
+}
+
+document.getElementById('save-stock-btn').addEventListener('click', async function() {
+    const newStock = parseInt(document.getElementById('new-stock-quantity').value);
+    
+    if (isNaN(newStock) || newStock < 0) {
+        alert('Please enter a valid stock quantity');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/inventory/${currentMedicineId}/update-stock`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ stock_quantity: newStock })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('Stock updated successfully!');
+            modal.hide();
+            loadInventoryItems();
+            loadInventoryStats();
+        } else {
+            alert('Error updating stock: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error updating stock:', error);
+        alert('Error updating stock');
+    }
+});
+
+// Load data on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadInventoryStats();
+    loadInventoryItems();
+});
+</script>
+
+<style>
+    .table-warning {
+        background-color: rgba(255, 193, 7, 0.1) !important;
+    }
+    
+    .table-danger {
+        background-color: rgba(220, 53, 69, 0.1) !important;
+    }
+</style>
+{% endblock %}

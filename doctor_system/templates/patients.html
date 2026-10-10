@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}My Patients{% endblock %}
+{% block page_title %}Patient Directory & History{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-users" style="color: var(--primary);"></i> Consulted Patients Directory ({{ patients|length }})</h2>
+  </div>
+
+  {% if patients %}
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Patient Name</th>
+            <th>Contact / Email</th>
+            <th>City / Location</th>
+            <th>Consultations Count</th>
+            <th>Prescriptions Issued</th>
+            <th>Last Visit</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in patients %}
+            <tr>
+              <td>
+                <strong>{{ p.user.full_name or p.user.username }}</strong>
+                <div style="font-size: 0.78rem; color: var(--slate-500);">
+                  {{ p.user.gender or 'N/A' }} • {{ p.user.age or '30' }} yrs
+                </div>
+              </td>
+              <td>
+                <div>{{ p.user.phone or 'Not provided' }}</div>
+                <div style="font-size: 0.78rem; color: var(--slate-500);">{{ p.user.email }}</div>
+              </td>
+              <td>{{ p.user.city or 'Delhi' }}</td>
+              <td><span class="badge badge-confirmed">{{ p.total_consultations }} Visits</span></td>
+              <td><span class="badge badge-completed">{{ p.prescriptions_count }} Issued</span></td>
+              <td>{{ p.last_consultation }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div style="text-align: center; padding: 60px 20px; color: var(--slate-500);">
+      <i class="fa-solid fa-user-group" style="font-size: 48px; color: var(--slate-300); margin-bottom: 16px;"></i>
+      <h3>No patients in directory yet</h3>
+      <p>Patients who book appointments with you will appear here along with their consultation history.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

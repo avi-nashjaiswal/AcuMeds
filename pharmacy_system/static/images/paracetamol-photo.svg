@@ -1,0 +1,70 @@
+<svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bottleGrad3" x1="30%" y1="10%" x2="70%" y2="90%">
+      <stop offset="0%" style="stop-color:#e8d4f8;stop-opacity:1" />
+      <stop offset="25%" style="stop-color:#d4b3e8;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#b885d1;stop-opacity:1" />
+      <stop offset="75%" style="stop-color:#9d5bb8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7d3d99;stop-opacity:0.9" />
+    </linearGradient>
+    
+    <linearGradient id="glassShine3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:white;stop-opacity:0.55" />
+      <stop offset="12%" style="stop-color:white;stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:white;stop-opacity:0" />
+    </linearGradient>
+    
+    <linearGradient id="capGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fafafa;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#e8e8e8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d0d0d0;stop-opacity:1" />
+    </linearGradient>
+    
+    <filter id="shadow3D3">
+      <feDropShadow dx="3" dy="5" stdDeviation="4" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  
+  <!-- Shadow -->
+  <ellipse cx="200" cy="480" rx="80" ry="12" fill="black" opacity="0.2"/>
+  
+  <!-- Main Bottle -->
+  <g filter="url(#shadow3D3)">
+    <!-- Bottle body -->
+    <path d="M 110 150 Q 100 200 105 280 Q 108 350 125 400 L 275 400 Q 292 350 295 280 Q 300 200 290 150 Z" 
+          fill="url(#bottleGrad3)" stroke="#7d3d99" stroke-width="1.5" stroke-opacity="0.4"/>
+    
+    <!-- Glass shine -->
+    <path d="M 120 165 Q 118 225 120 310 Q 122 365 130 395" 
+          stroke="url(#glassShine3)" stroke-width="15" fill="none" opacity="0.5"/>
+    
+    <!-- Bottle neck -->
+    <rect x="165" y="80" width="70" height="75" rx="8" fill="url(#bottleGrad3)" stroke="#6b2f85" stroke-width="1"/>
+    
+    <!-- Cap -->
+    <g>
+      <ellipse cx="200" cy="75" rx="42" ry="12" fill="url(#capGrad3)" stroke="#888" stroke-width="1"/>
+      <ellipse cx="200" cy="65" rx="45" ry="14" fill="url(#capGrad3)"/>
+      <ellipse cx="200" cy="62" rx="45" ry="8" fill="#f5f5f5" opacity="0.75"/>
+    </g>
+  </g>
+  
+  <!-- Label -->
+  <rect x="100" y="200" width="200" height="150" rx="5" fill="white" stroke="#ddd" stroke-width="2" opacity="0.97"/>
+  
+  <!-- Header bar -->
+  <rect x="100" y="200" width="200" height="18" fill="#7d3d99" rx="5 5 0 0"/>
+  <text x="200" y="213" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="white">PARACETAMOL</text>
+  
+  <!-- Main name -->
+  <text x="200" y="245" font-family="Arial, sans-serif" font-size="30" font-weight="bold" text-anchor="middle" fill="#7d3d99">PARACETAMOL</text>
+  
+  <!-- Dosage box -->
+  <rect x="115" y="260" width="170" height="30" fill="#f3e5f5" rx="3" stroke="#7d3d99" stroke-width="1"/>
+  <text x="200" y="283" font-family="Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">500 mg Tablets</text>
+  
+  <!-- Description -->
+  <text x="200" y="320" font-family="Arial, sans-serif" font-size="13" font-weight="600" text-anchor="middle" fill="#5e35b1">Fever & Pain Relief</text>
+  <text x="200" y="337" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#666">Safe & Effective OTC Medicine</text>
+  <text x="200" y="350" font-family="Arial, sans-serif" font-size="8" fill="#999">150 Tablets | Maximum 4000mg Daily</text>
+</svg>

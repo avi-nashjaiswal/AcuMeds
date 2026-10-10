@@ -1,0 +1,97 @@
+<svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradients for realistic 3D effect -->
+    <linearGradient id="bottleMainGrad" x1="30%" y1="10%" x2="70%" y2="90%">
+      <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
+      <stop offset="25%" style="stop-color:#ff5252;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#dd3333;stop-opacity:1" />
+      <stop offset="75%" style="stop-color:#cc2222;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#880000;stop-opacity:0.9" />
+    </linearGradient>
+    
+    <linearGradient id="glassShine1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:white;stop-opacity:0.6" />
+      <stop offset="10%" style="stop-color:white;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:white;stop-opacity:0" />
+    </linearGradient>
+    
+    <linearGradient id="capGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f5f5f5;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#d0d0d0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#808080;stop-opacity:1" />
+    </linearGradient>
+    
+    <radialGradient id="capHighlight" cx="30%" cy="30%">
+      <stop offset="0%" style="stop-color:white;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:white;stop-opacity:0" />
+    </radialGradient>
+    
+    <filter id="shadow3D">
+      <feDropShadow dx="3" dy="5" stdDeviation="4" flood-opacity="0.4"/>
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.2"/>
+    </filter>
+    
+    <filter id="innerShadow">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="coloredBlur"/>
+      <feFlood flood-color="#000000" flood-opacity="0.3" result="offsetblur"/>
+      <feComposite in="offsetblur" in2="SourceGraphic" operator="in" result="offsetblur"/>
+      <feComposite in="offsetblur" in2="SourceGraphic" operator="in" result="offsetblur"/>
+    </filter>
+  </defs>
+  
+  <!-- Shadow cast on surface -->
+  <ellipse cx="200" cy="480" rx="80" ry="12" fill="black" opacity="0.2"/>
+  
+  <!-- Main Bottle Body with serious 3D perspective -->
+  <g filter="url(#shadow3D)">
+    <!-- Bottle outline curve left side -->
+    <path d="M 110 150 Q 100 200 105 280 Q 108 350 125 400 L 275 400 Q 292 350 295 280 Q 300 200 290 150 Z" 
+          fill="url(#bottleMainGrad)" stroke="#aa0000" stroke-width="1.5" stroke-opacity="0.5"/>
+    
+    <!-- Glass shine effects (left side) -->
+    <path d="M 120 160 Q 118 220 120 300 Q 122 360 130 390" 
+          stroke="url(#glassShine1)" stroke-width="18" fill="none" opacity="0.4"/>
+    
+    <!-- Second highlight stripe -->
+    <ellipse cx="135" cy="280" rx="8" ry="60" fill="white" opacity="0.2"/>
+    
+    <!-- Bottle neck -->
+    <rect x="165" y="80" width="70" height="75" rx="8" fill="url(#bottleMainGrad)" stroke="#990000" stroke-width="1"/>
+    
+    <!-- Bottle cap /lid -->
+    <g>
+      <!-- Cap base -->
+      <ellipse cx="200" cy="75" rx="42" ry="12" fill="url(#capGrad)" stroke="#666" stroke-width="1"/>
+      
+      <!-- Cap top -->
+      <ellipse cx="200" cy="65" rx="45" ry="14" fill="url(#capGrad)"/>
+      <ellipse cx="200" cy="62" rx="45" ry="8" fill="url(#capHighlight)"/>
+      
+      <!-- Cap ridges for grip -->
+      <g stroke="#aaa" stroke-width="1.5" opacity="0.6">
+        <line x1="160" y1="70" x2="155" y2="75"/>
+        <line x1="175" y1="68" x2="172" y2="77"/>
+        <line x1="225" y1="68" x2="228" y2="77"/>
+        <line x1="240" y1="70" x2="245" y2="75"/>
+      </g>
+    </g>
+  </g>
+  
+  <!-- Label Background -->
+  <rect x="100" y="200" width="200" height="140" rx="5" fill="white" stroke="#ddd" stroke-width="2" opacity="0.95"/>
+  
+  <!-- Brand/Product Name -->
+  <text x="200" y="235" font-family="Arial, sans-serif" font-size="32" font-weight="bold" text-anchor="middle" fill="#cc0000">ASPIRIN</text>
+  
+  <!-- Dosage -->
+  <rect x="110" y="250" width="180" height="30" fill="#f0f0f0" rx="3"/>
+  <text x="200" y="272" font-family="Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">500 mg Tablets</text>
+  
+  <!-- Product Description -->
+  <text x="200" y="310" font-family="Arial, sans-serif" font-size="14" font-weight="600" text-anchor="middle" fill="#d32f2f">Fast Pain & Fever Relief</text>
+  <text x="200" y="328" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#666">100 Tablets per Bottle</text>
+  
+  <!-- Regulatory text -->
+  <text x="110" y="315" font-family="Arial, sans-serif" font-size="8" fill="#999">Active Ingredient: Acetylsalicylic Acid</text>
+  <text x="110" y="327" font-family="Arial, sans-serif" font-size="8" fill="#999">Keep in cool, dry place | Do not exceed 4g per day</text>
+</svg>

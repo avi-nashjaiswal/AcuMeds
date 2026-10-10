@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}My Order History - AcuMeds Pharmacy{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h2 class="fw-bold mb-1" style="color: #0f172a !important;">
+            <i class="fas fa-box-open text-primary me-2"></i> {% if current_language == 'hi' %}मेरे ऑर्डर का इतिहास{% else %}My Order History{% endif %}
+        </h2>
+        <p class="text-secondary mb-0">
+            {% if current_language == 'hi' %}दवाओं की डिलीवरी ट्रैक करें, GST टैक्स इनवॉइस डाउनलोड करें और ऑनलाइन भुगतान करें।{% else %}Track medicine deliveries, download official GST tax invoices, and pay online.{% endif %}
+        </p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="{{ url_for('medicine.list_medicines') }}" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
+            <i class="fas fa-shopping-bag me-1"></i> {% if current_language == 'hi' %}और दवाइयाँ ऑर्डर करें{% else %}Order More Medicines{% endif %}
+        </a>
+    </div>
+</div>
+
+{% if orders %}
+    <!-- Summary Metrics Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 rounded-4 shadow-sm p-3 bg-white text-center">
+                <div class="text-muted small fw-bold text-uppercase">{% if current_language == 'hi' %}कुल ऑर्डर{% else %}Total Orders{% endif %}</div>
+                <div class="fs-3 fw-bold text-primary">{{ orders|length }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 rounded-4 shadow-sm p-3 bg-white text-center">
+                <div class="text-muted small fw-bold text-uppercase">{% if current_language == 'hi' %}प्रगति पर{% else %}Active / In Transit{% endif %}</div>
+                <div class="fs-3 fw-bold text-info">
+                    {{ orders|selectattr('status', 'in', ['Pending', 'Confirmed', 'Processing', 'Ready', 'Shipped'])|list|length }}
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 rounded-4 shadow-sm p-3 bg-white text-center">
+                <div class="text-muted small fw-bold text-uppercase">{% if current_language == 'hi' %}डिलीवर किए गए{% else %}Delivered{% endif %}</div>
+                <div class="fs-3 fw-bold text-success">
+                    {{ orders|selectattr('status', 'equalto', 'Delivered')|list|length }}
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 rounded-4 shadow-sm p-3 bg-white text-center">
+                <div class="text-muted small fw-bold text-uppercase">{% if current_language == 'hi' %}कुल खर्च{% else %}Total Spend{% endif %}</div>
+                <div class="fs-3 fw-bold text-dark">
+                    ₹{{ "%.0f"|format(orders|map(attribute='total_amount')|sum) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Table Card -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">{% if current_language == 'hi' %}ऑर्डर ID व तारीख{% else %}Order ID & Date{% endif %}</th>
+                            <th>{% if current_language == 'hi' %}फार्मेसी विक्रेता{% else %}Pharmacy Vendor{% endif %}</th>
+                            <th>{% if current_language == 'hi' %}खरीदी गई दवाइयाँ{% else %}Items Purchased{% endif %}</th>
+                            <th>{% if current_language == 'hi' %}कुल राशि{% else %}Total Amount{% endif %}</th>
+                            <th>{% if current_language == 'hi' %}भुगतान स्थिति{% else %}Payment Status{% endif %}</th>
+                            <th>{% if current_language == 'hi' %}डिलीवरी स्थिति{% else %}Delivery Status{% endif %}</th>
+                            <th class="text-end pe-4">{% if current_language == 'hi' %}कार्रवाई{% else %}Actions{% endif %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <!-- Order ID & Date -->
+                            <td class="ps-4">
+                                <div class="fw-bold text-dark fs-6">#{{ order.id }}</div>
+                                <small class="text-muted">
+                                    <i class="far fa-calendar-alt me-1"></i> {{ order.order_date.strftime('%d %b %Y, %I:%M %p') }}
+                                </small>
+                            </td>
+
+                            <!-- Vendor / Shop -->
+                            <td>
+                                {% if order.shopkeeper %}
+                                    <span class="badge bg-light text-primary border fw-semibold">
+                                        <i class="fas fa-store me-1"></i> {{ order.shopkeeper.shop_name }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-light text-secondary border">
+                                        <i class="fas fa-hospital me-1"></i> AcuMeds Central
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Items Summary -->
+                            <td>
+                                <div class="fw-semibold text-dark">
+                                    {{ order.order_items|length }} {% if current_language == 'hi' %}दवा(एँ){% else %}item(s){% endif %}
+                                </div>
+                                {% if order.order_items %}
+                                    <small class="text-muted d-block text-truncate" style="max-width: 180px;">
+                                        {{ order.order_items[0].medicine.name if order.order_items[0].medicine else 'Medicine' }}{% if order.order_items|length > 1 %} + {{ order.order_items|length - 1 }} more{% endif %}
+                                    </small>
+                                {% endif %}
+                            </td>
+
+                            <!-- Amount -->
+                            <td>
+                                <div class="fs-6 fw-bold text-success">
+                                    ₹{{ "%.2f"|format(order.total_amount * 1.05) }}
+                                </div>
+                                <small class="text-muted" style="font-size: 0.72rem;">{% if current_language == 'hi' %}5% टैक्स सहित{% else %}incl. 5% tax{% endif %}</small>
+                            </td>
+
+                            <!-- Payment Status Badge -->
+                            <td>
+                                {% if order.payment_status == 'Paid' %}
+                                    <span class="badge px-3 py-2 rounded-pill fw-bold" style="background: #ecfdf5 !important; color: #047857 !important; border: 1px solid #a7f3d0 !important;">
+                                        <i class="fas fa-check-circle me-1"></i> {% if current_language == 'hi' %}ऑनलाइन भुगतान सफल{% else %}Paid Online{% endif %}
+                                    </span>
+                                    {% if order.payment_method %}
+                                        <small class="d-block text-muted mt-1" style="font-size: 0.72rem;">{{ order.payment_method }}</small>
+                                    {% endif %}
+                                {% elif order.payment_status == 'Pending (COD)' %}
+                                    <span class="badge px-3 py-2 rounded-pill fw-bold bg-info bg-opacity-10 text-info border border-info">
+                                        <i class="fas fa-money-bill-wave me-1"></i> {% if current_language == 'hi' %}डिलीवरी पर नकद{% else %}Pay on Delivery{% endif %}
+                                    </span>
+                                {% elif order.payment_status == 'Pending Verification' %}
+                                    <span class="badge px-3 py-2 rounded-pill fw-bold bg-warning bg-opacity-25 text-dark border border-warning">
+                                        <i class="fas fa-hourglass-half me-1"></i> {% if current_language == 'hi' %}सत्यापन जारी{% else %}Verifying Payment{% endif %}
+                                    </span>
+                                {% else %}
+                                    <div class="d-flex flex-column gap-1 align-items-start">
+                                        <span class="badge px-2 py-1 rounded-pill bg-warning bg-opacity-10 text-warning border border-warning">
+                                            {% if current_language == 'hi' %}भुगतान लंबित{% else %}Payment Pending{% endif %}
+                                        </span>
+                                        <a href="{{ url_for('order.pay_order', order_id=order.id) }}" class="btn btn-sm btn-success rounded-pill fw-bold px-3 shadow-sm mt-1" style="font-size: 0.75rem;">
+                                            <i class="fas fa-credit-card me-1"></i> {% if current_language == 'hi' %}भुगतान करें ₹{{ "%.2f"|format(order.total_amount * 1.05) }}{% else %}Pay ₹{{ "%.2f"|format(order.total_amount * 1.05) }}{% endif %}
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </td>
+
+                            <!-- Delivery Status -->
+                            <td>
+                                <span class="badge px-3 py-2 rounded-pill fw-semibold bg-{% if order.status == 'Delivered' %}success{% elif order.status in ['Shipped', 'Ready', 'In Transit'] %}info text-white{% elif order.status == 'Confirmed' %}primary{% elif order.status == 'Cancelled' %}danger{% else %}secondary{% endif %}">
+                                    {{ order.status }}
+                                </span>
+                                {% if order.estimated_delivery_date %}
+                                    <small class="d-block text-muted mt-1" style="font-size: 0.72rem;">
+                                        Est: {{ order.estimated_delivery_date.strftime('%d %b') }}
+                                    </small>
+                                {% endif %}
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="text-end pe-4">
+                                <div class="d-inline-flex align-items-center gap-1 flex-wrap justify-content-end">
+                                    <a href="{{ url_for('order.view_order', order_id=order.id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold" title="{% if current_language == 'hi' %}ऑर्डर विवरण देखें{% else %}View Order Details{% endif %}">
+                                        <i class="fas fa-eye me-1"></i> {% if current_language == 'hi' %}विवरण{% else %}View{% endif %}
+                                    </a>
+
+                                    {% if order.payment_status == 'Paid' %}
+                                        <a href="{{ url_for('order.payment_result', order_id=order.id) }}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold" title="{% if current_language == 'hi' %}टैक्स इनवॉइस देखें व प्रिंट करें{% else %}Print GST Tax Invoice{% endif %}">
+                                            <i class="fas fa-file-invoice me-1"></i> {% if current_language == 'hi' %}इनवॉइस{% else %}Invoice{% endif %}
+                                        </a>
+                                    {% endif %}
+
+                                    {% if order.status == 'Delivered' or order.payment_status == 'Paid' %}
+                                        <a href="{{ url_for('order.view_order', order_id=order.id) }}#rate-medicines" class="btn btn-sm btn-outline-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="{% if current_language == 'hi' %}दवाओं को रेटिंग दें{% else %}Rate Medicines{% endif %}">
+                                            <i class="fas fa-star"></i>
+                                        </a>
+                                    {% endif %}
+
+                                    {% if order.status in ['Pending', 'Confirmed'] and order.payment_status != 'Paid' and order.payment_status != 'Pending Verification' %}
+                                        <form method="POST" action="{{ url_for('order.cancel_order', order_id=order.id) }}" onsubmit="return confirm('{% if current_language == 'hi' %}क्या आप वाकई यह ऑर्डर रद्द करना चाहते हैं?{% else %}Are you sure you want to cancel this order?{% endif %}');" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="{% if current_language == 'hi' %}ऑर्डर रद्द करें{% else %}Cancel Order{% endif %}">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="card border-0 rounded-4 shadow-sm p-5 text-center bg-white">
+        <div class="mb-3">
+            <i class="fas fa-box-open text-muted fa-4x"></i>
+        </div>
+        <h4 class="fw-bold mb-2">{% if current_language == 'hi' %}कोई ऑर्डर नहीं मिला{% else %}No Orders Found{% endif %}</h4>
+        <p class="text-muted mb-4">
+            {% if current_language == 'hi' %}आपने अभी तक कोई ऑर्डर नहीं दिया है। विश्वसनीय फार्मेसियों से दवाइयाँ खरीदें।{% else %}You have not placed any medicine orders yet. Explore genuine medicines from verified pharmacies.{% endif %}
+        </p>
+        <div>
+            <a href="{{ url_for('medicine.list_medicines') }}" class="btn btn-primary rounded-pill px-5 py-2 fw-bold shadow-sm">
+                <i class="fas fa-shopping-bag me-1"></i> {% if current_language == 'hi' %}अभी दवाइयाँ देखें{% else %}Browse Medicines Now{% endif %}
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
