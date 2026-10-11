@@ -58,6 +58,11 @@
                             {% endfor %}
                         </ul>
                     </li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="nav-link btn btn-outline-light btn-sm text-white px-2 py-1" href="/hub" style="border-radius: 8px; border: 1px solid rgba(255,255,255,0.4); font-size: 0.85rem;" title="Unified Live Hub: Switch between Customer, Shopkeeper, Admin, Doctor, and Delivery Portals">
+                            🚀 Live Hub
+                        </a>
+                    </li>
                     {% if current_user.is_authenticated and current_user.role == 'delivery' %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('delivery.delivery_dashboard') }}">{{ t('nav.delivery_panel') }}</a>

@@ -178,11 +178,21 @@ start_production.bat
 
 ### Method 3: 1-Click Deployment to Render (`render.yaml`)
 
-1. Fork or push this repository to your GitHub account.
-2. In [Render Dashboard](https://dashboard.render.com/), click **New** &rarr; **Blueprint**.
-3. Select your repository `AcuMeds`. Render will detect `render.yaml` automatically.
-4. Attach the included 10 GB persistent disk for `/app/admin_system/database`.
-5. Click **Apply** to deploy.
+1. Fork or push this repository to your GitHub account (`https://github.com/avi-nashjaiswal/AcuMeds`).
+2. In [Render Dashboard](https://dashboard.render.com/), create a new **Web Service** with:
+   - **Environment**: `Python 3`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `python prod_server.py`
+3. All 5 portals are automatically served under your single Render URL via the **Unified Cloud Gateway**:
+
+| Portal / Feature | Live URL Path | Description & Credentials |
+| :--- | :--- | :--- |
+| **User / Customer** | `https://acumeds.onrender.com/` | Public storefront, AI recommendation, online cart |
+| **Live Project Hub** | `https://acumeds.onrender.com/hub` | Interactive 1-click dashboard linking to all portals |
+| **Shopkeeper Portal**| `https://acumeds.onrender.com/shopkeeper/` | Inventory, batch expiry, orders (`shopkeeper1` / `shopkeeper123`) |
+| **Admin Panel** | `https://acumeds.onrender.com/admin/` | Superadmin console, UTR verify (`admin` / `admin123`) |
+| **Doctor Telehealth**| `https://acumeds.onrender.com/doctor/` | Video consults & digital Rx (`doctor1` / `doctor123`) |
+| **Delivery Portal** | `https://acumeds.onrender.com/delivery/` | Transit tracking & OTP proof (`delivery1` / `delivery123`) |
 
 ---
 

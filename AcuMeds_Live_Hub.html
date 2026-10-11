@@ -184,15 +184,15 @@
         const port = window.location.port;
         const proto = window.location.protocol.startsWith('http') ? window.location.protocol : 'http:';
         
-        // If deployed to Cloud (Render/Railway/Domain) without custom dev ports:
-        if (host && host !== 'localhost' && host !== '127.0.0.1' && (!port || port === '80' || port === '443')) {
+        // Unified Gateway on Cloud (Render / Railway) or port 10000:
+        if ((host && host !== 'localhost' && host !== '127.0.0.1') || port === '10000' || !port || port === '80' || port === '443') {
           document.getElementById('link-user').href = '/';
           document.getElementById('link-shopkeeper').href = '/shopkeeper/';
           document.getElementById('link-admin').href = '/admin/';
           document.getElementById('link-doctor').href = '/doctor/';
           document.getElementById('link-delivery').href = '/delivery/';
-        } else if (host && host !== 'localhost' && host !== '127.0.0.1') {
-          // Deployed VPS with exposed ports
+        } else {
+          // Local individual ports
           document.getElementById('link-user').href = `${proto}//${host}:5000`;
           document.getElementById('link-shopkeeper').href = `${proto}//${host}:5001`;
           document.getElementById('link-admin').href = `${proto}//${host}:5002`;

@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 """
-AcuMeds Production Multi-Service WSGI Server
-Runs all 5 AcuMeds portals concurrently using production-grade WSGI (Waitress)
-with complete process-level isolation and graceful lifecycle management.
+AcuMeds Production Multi-Service WSGI Server & Unified Cloud Gateway
+Runs all 5 AcuMeds portals with isolated WSGI workers and exposes a unified
+subpath reverse proxy gateway on port $PORT (Render default 10000).
 
-Services:
-  1. Pharmacy / Customer Portal  : Port $PORT / 5000 (Primary public entrypoint)
-  2. Shopkeeper Portal           : Port $PORT_SHOPKEEPER / 5001
-  3. Admin Portal                : Port $PORT_ADMIN / 5002
-  4. Delivery Portal             : Port $PORT_DELIVERY / 5003
-  5. Doctor Telehealth Portal    : Port $PORT_DOCTOR / 5004
+Unified Public Endpoints:
+  - /             -> Customer Storefront & E-Pharmacy (Internal Port 5000/5010)
+  - /hub          -> AcuMeds Live Project Hub (Interactive 1-Click Access)
+  - /shopkeeper/  -> Shopkeeper Inventory & Orders Portal (Internal Port 5001)
+  - /admin/       -> Super Admin & Management Console (Internal Port 5002)
+  - /delivery/    -> Delivery Agent Dispatch Portal (Internal Port 5003)
+  - /doctor/      -> Doctor Telehealth & Digital Rx Portal (Internal Port 5004)
 """
 
 import os
@@ -20,6 +21,9 @@ import signal
 import socket
 import threading
 import subprocess
+import re
+import urllib.request
+import urllib.error
 from datetime import datetime
 
 # Polyfill ast attributes removed in Python 3.14+ for legacy library compatibility
@@ -95,9 +99,169 @@ def stream_process_logs(proc, name):
         pass
 
 
+class UnifiedGateway:
+    """WSGI Reverse Proxy Gateway routing all 5 portals through a single public port."""
+    def __init__(self, routes, customer_port=5000):
+        self.routes = routes  # {"/shopkeeper": 5001, "/admin": 5002, "/delivery": 5003, "/doctor": 5004}
+        self.customer_port = customer_port
+        self.hub_html_path = os.path.join(BASE_DIR, 'AcuMeds_Live_Hub.html')
+
+    def __call__(self, environ, start_response):
+        path = environ.get('PATH_INFO', '/')
+        method = environ.get('REQUEST_METHOD', 'GET')
+        query = environ.get('QUERY_STRING', '')
+
+        # 1. Serve Live Hub Dashboard
+        if path in ('/hub', '/hub/'):
+            try:
+                with open(self.hub_html_path, 'rb') as f:
+                    content = f.read()
+                start_response('200 OK', [
+                    ('Content-Type', 'text/html; charset=utf-8'),
+                    ('Content-Length', str(len(content))),
+                    ('Cache-Control', 'no-cache')
+                ])
+                return [content]
+            except Exception as e:
+                err = f"Live Hub error: {e}".encode()
+                start_response('500 Internal Server Error', [('Content-Type', 'text/plain'), ('Content-Length', str(len(err)))])
+                return [err]
+
+        # 2. Redirect exact prefix without trailing slash (e.g. /shopkeeper -> /shopkeeper/)
+        for prefix in self.routes.keys():
+            if path == prefix:
+                target_url = f"{prefix}/" + (f"?{query}" if query else "")
+                start_response('302 Found', [('Location', target_url), ('Content-Length', '0')])
+                return [b'']
+
+        # 3. Match route prefix
+        target_port = self.customer_port
+        prefix = ""
+        for p, port in self.routes.items():
+            if path.startswith(p + '/'):
+                target_port = port
+                prefix = p
+                break
+
+        # 4. Determine target path
+        if prefix:
+            target_path = path[len(prefix):]
+            if not target_path or not target_path.startswith('/'):
+                target_path = '/' + target_path
+        else:
+            target_path = path
+
+        url = f"http://127.0.0.1:{target_port}{target_path}"
+        if query:
+            url += f"?{query}"
+
+        # 5. Build forwarded headers
+        headers = {}
+        for k, v in environ.items():
+            if k.startswith('HTTP_'):
+                h_name = k[5:].replace('_', '-').title()
+                if h_name not in ('Host', 'Content-Length'):
+                    headers[h_name] = v
+            elif k in ('CONTENT_TYPE', 'CONTENT_LENGTH') and v:
+                h_name = k.replace('_', '-').title()
+                headers[h_name] = v
+
+        client_host = environ.get('HTTP_X_FORWARDED_HOST') or environ.get('HTTP_HOST') or 'localhost:10000'
+        client_proto = environ.get('HTTP_X_FORWARDED_PROTO') or environ.get('wsgi.url_scheme', 'https')
+        client_ip = environ.get('HTTP_X_FORWARDED_FOR') or environ.get('REMOTE_ADDR', '127.0.0.1')
+
+        headers['Host'] = f"127.0.0.1:{target_port}"
+        headers['X-Forwarded-Host'] = client_host
+        headers['X-Forwarded-Proto'] = client_proto
+        headers['X-Forwarded-For'] = client_ip
+        if prefix:
+            headers['X-Forwarded-Prefix'] = prefix
+
+        # 6. Read request body if present
+        body = None
+        if method in ('POST', 'PUT', 'PATCH', 'DELETE'):
+            try:
+                cl = int(environ.get('CONTENT_LENGTH', 0))
+                if cl > 0:
+                    body = environ['wsgi.input'].read(cl)
+            except Exception:
+                pass
+
+        # 7. Proxy request to internal backend
+        class NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+            def redirect_request(self, req, fp, code, msg, hdrs, newurl):
+                return None
+
+        opener = urllib.request.build_opener(NoRedirectHandler)
+
+        try:
+            req = urllib.request.Request(url, data=body, headers=headers, method=method)
+            try:
+                resp = opener.open(req, timeout=30)
+                status = f"{resp.status} {resp.reason}"
+                resp_headers = resp.getheaders()
+                resp_body = resp.read()
+            except urllib.error.HTTPError as e:
+                status = f"{e.code} {e.reason}"
+                resp_headers = e.headers.items()
+                resp_body = e.read()
+
+            out_headers = []
+            is_html = False
+            for k, v in resp_headers:
+                lk = k.lower()
+                if lk in ('transfer-encoding', 'connection', 'content-length'):
+                    continue
+                if lk == 'content-type' and 'text/html' in v.lower():
+                    is_html = True
+                # Rewrite Location header for redirects from sub-portals
+                if lk == 'location' and prefix:
+                    if v.startswith('/') and not v.startswith(prefix + '/') and v != prefix:
+                        v = f"{prefix}{v}"
+                    elif v.startswith(f"http://127.0.0.1:{target_port}"):
+                        rel = v[len(f"http://127.0.0.1:{target_port}"):]
+                        v = f"{prefix}{rel}" if rel.startswith('/') else f"{prefix}/{rel}"
+                out_headers.append((k, v))
+
+            # Rewrite HTML links for sub-portals so navigation stays in subpath
+            if is_html and prefix:
+                try:
+                    html_text = resp_body.decode('utf-8', errors='replace')
+                    def _rewrite_attr(m):
+                        attr = m.group(1)
+                        val = m.group(2)
+                        if val.startswith('/') and not val.startswith(prefix + '/') and val != prefix:
+                            return f'{attr}="{prefix}{val}"'
+                        return m.group(0)
+
+                    html_text = re.sub(r'\b(href|action|src)=["\'](/[^"\']*)["\']', _rewrite_attr, html_text)
+                    resp_body = html_text.encode('utf-8')
+                except Exception:
+                    pass
+
+            out_headers.append(('Content-Length', str(len(resp_body))))
+            start_response(status, out_headers)
+            return [resp_body]
+
+        except Exception as err:
+            err_html = f"""<!doctype html>
+<html>
+<head><title>AcuMeds Portal Initializing</title></head>
+<body style="font-family: system-ui, sans-serif; background: #0f172a; color: #f8fafc; display: flex; align-items: center; justify-content: center; height: 90vh;">
+  <div style="text-align: center; max-width: 520px; padding: 32px; border-radius: 20px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);">
+    <h2 style="color: #2dd4bf; margin-top: 0;">Portal Initializing</h2>
+    <p style="color: #94a3b8; line-height: 1.6;">The requested service is warming up internal WSGI workers. Please refresh in a moment.</p>
+    <a href="{path}" style="display: inline-block; margin-top: 14px; padding: 12px 28px; background: #0f766e; color: white; border-radius: 10px; text-decoration: none; font-weight: bold;">Refresh Page</a>
+  </div>
+</body>
+</html>""".encode('utf-8')
+            start_response('503 Service Unavailable', [('Content-Type', 'text/html; charset=utf-8'), ('Content-Length', str(len(err_html)))])
+            return [err_html]
+
+
 def main():
     print("=" * 72)
-    print("   ACUMEDS - PRODUCTION MULTI-SERVICE WSGI SERVER")
+    print("   ACUMEDS - PRODUCTION UNIFIED GATEWAY & MULTI-PORTAL SERVER")
     print("=" * 72)
     print(f"Timestamp : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"Root Dir  : {BASE_DIR}")
@@ -108,24 +272,31 @@ def main():
     ensure_database()
     print("-" * 72)
 
-    # 2. Define service registry
-    # On Render, the primary public entrypoint listens on Render's $PORT (e.g. 10000)
-    primary_port = int(os.getenv("PORT", os.getenv("PORT_PHARMACY", 5000)))
+    # 2. Determine public gateway port vs internal ports
+    # Render binds incoming public traffic to $PORT (usually 10000)
+    gateway_port = int(os.getenv("PORT", 10000))
+
+    # Avoid port collision with customer internal port
+    internal_customer_port = 5010 if gateway_port == 5000 else 5000
+    internal_shopkeeper_port = 5001
+    internal_admin_port = 5002
+    internal_delivery_port = 5003
+    internal_doctor_port = 5004
 
     services = [
-        {"name": "Customer / Pharmacy", "dir": "pharmacy_system",   "port": primary_port},
-        {"name": "Shopkeeper Portal",   "dir": "shopkeeper_system", "port": int(os.getenv("PORT_SHOPKEEPER", 5001))},
-        {"name": "Admin Panel",         "dir": "admin_system",      "port": int(os.getenv("PORT_ADMIN", 5002))},
-        {"name": "Delivery Portal",     "dir": "delivery_system",   "port": int(os.getenv("PORT_DELIVERY", 5003))},
-        {"name": "Doctor Telehealth",   "dir": "doctor_system",     "port": int(os.getenv("PORT_DOCTOR", 5004))},
+        {"name": "Customer / Pharmacy", "dir": "pharmacy_system",   "port": internal_customer_port},
+        {"name": "Shopkeeper Portal",   "dir": "shopkeeper_system", "port": internal_shopkeeper_port},
+        {"name": "Admin Panel",         "dir": "admin_system",      "port": internal_admin_port},
+        {"name": "Delivery Portal",     "dir": "delivery_system",   "port": internal_delivery_port},
+        {"name": "Doctor Telehealth",   "dir": "doctor_system",     "port": internal_doctor_port},
     ]
 
-    host = os.getenv("HOST", "0.0.0.0")
+    host = "127.0.0.1"
     threads_per_service = int(os.getenv("WSGI_THREADS", "6"))
     active_procs = []
 
-    # 3. Launch each WSGI worker in an isolated subprocess
-    print("Starting production WSGI workers with process-level isolation:")
+    # 3. Launch each backend service in an isolated subprocess
+    print("Starting backend WSGI workers with process-level isolation:")
     for svc in services:
         sdir = os.path.join(BASE_DIR, svc["dir"])
         port = svc["port"]
@@ -162,7 +333,7 @@ except Exception as e:
                 env=env
             )
             active_procs.append((proc, svc))
-            print(f"  [+] {name:<26} starting on http://{host}:{port} ({threads_per_service} WSGI threads)")
+            print(f"  [+] {name:<26} running on http://127.0.0.1:{port} ({threads_per_service} WSGI threads)")
             sys.stdout.flush()
 
             # Start background log streamer thread
@@ -171,10 +342,24 @@ except Exception as e:
         except Exception as e:
             print(f"  [X] Failed to launch {name}: {e}")
 
+    # 4. Initialize and launch Unified Gateway on public port
+    routes = {
+        "/shopkeeper": internal_shopkeeper_port,
+        "/admin": internal_admin_port,
+        "/delivery": internal_delivery_port,
+        "/doctor": internal_doctor_port,
+    }
+    gateway = UnifiedGateway(routes=routes, customer_port=internal_customer_port)
+
     print("-" * 72)
-    print("All 5 WSGI services are active and serving production traffic:")
-    for svc in services:
-        print(f"  * {svc['name']:<24} -> http://localhost:{svc['port']}")
+    print(f"Unified Public Gateway listening on http://0.0.0.0:{gateway_port}")
+    print("All 5 portals are accessible from your primary deployment URL:")
+    print(f"  * Customer Storefront   -> http://localhost:{gateway_port}/")
+    print(f"  * Live Project Hub      -> http://localhost:{gateway_port}/hub")
+    print(f"  * Shopkeeper Portal     -> http://localhost:{gateway_port}/shopkeeper/")
+    print(f"  * Super Admin Panel     -> http://localhost:{gateway_port}/admin/")
+    print(f"  * Delivery Portal       -> http://localhost:{gateway_port}/delivery/")
+    print(f"  * Doctor Telehealth     -> http://localhost:{gateway_port}/doctor/")
     print("=" * 72)
     print("Press Ctrl+C to terminate production server.\n")
     sys.stdout.flush()
@@ -201,14 +386,10 @@ except Exception as e:
     signal.signal(signal.SIGINT, handle_exit)
     signal.signal(signal.SIGTERM, handle_exit)
 
-    # Monitor loop
+    # Launch Waitress for the Unified Gateway
+    from waitress import serve
     try:
-        while True:
-            time.sleep(2)
-            for p, svc in active_procs:
-                ret = p.poll()
-                if ret is not None:
-                    print(f"[!] Warning: {svc['name']} (Port {svc['port']}) exited unexpectedly with code {ret}")
+        serve(gateway, host="0.0.0.0", port=gateway_port, threads=8, _quiet=True)
     except KeyboardInterrupt:
         handle_exit(None, None)
 
