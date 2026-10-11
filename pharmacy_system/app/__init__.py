@@ -70,7 +70,7 @@ def create_app():
         static_folder=project_static,
         static_url_path='/static'
     )
-    app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY') or os.getenv('FLASK_SECRET_KEY') or 'acumeds-pharmacy-prod-secret-key-2026'
     app.config['SESSION_COOKIE_NAME'] = 'acumeds_pharmacy_session'
     app.config['DEFAULT_LANGUAGE'] = DEFAULT_LANGUAGE
 
@@ -97,16 +97,30 @@ def create_app():
     app.config['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY', '').strip()
     app.config['OPENAI_MODEL'] = os.getenv('OPENAI_MODEL', 'gpt-4o-mini').strip() or 'gpt-4o-mini'
     
-    # Database configuration - Use SHARED pharmacy database
-    # This allows all systems (admin, shopkeeper, pharmacy) to use the same data
-    db_path = os.path.join(project_root, 'admin_system', 'database', 'pharmacy.db')
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+    # Database configuration - Use SHARED pharmacy database or DATABASE_URL
+    database_url = os.getenv('DATABASE_URL') or os.getenv('SQLALCHEMY_DATABASE_URI')
+    if database_url:
+        if database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    else:
+        db_path = os.path.join(project_root, 'admin_system', 'database', 'pharmacy.db')
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     # Upload configuration (point to project-level static uploads)
     app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(basedir), 'static', 'uploads')
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
     
+    # Enable ProxyFix for reverse-proxy production deployments (Nginx/Render/Railway)
+    try:
+        from werkzeug.middleware.proxy_fix import ProxyFix
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+    except Exception:
+        pass
+
     # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)

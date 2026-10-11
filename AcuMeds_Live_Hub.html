@@ -142,41 +142,55 @@
   <main class="shell">
     <section class="hero">
       <div class="eyebrow">AcuMeds Live Project Hub</div>
-      <h1>One Link for All Portals</h1>
-      <p class="subtitle">Open this page on any device. From here you can enter the customer portal, shopkeeper portal, admin panel, or delivery portal. This link is shareable and works outside your computer because each portal is published with its own public access URL.</p>
+      <h1>One Link for All 5 Portals</h1>
+      <p class="subtitle">Unified clinical access dashboard for AcuMeds. From here you can enter the Customer Storefront, Shopkeeper Inventory, Admin Panel, Doctor Telehealth Room, or Delivery Tracking portal.</p>
     </section>
 
     <section class="grid">
       <article class="card">
-        <div class="role"><span class="dot"></span>User / Customer</div>
-        <p class="desc">Browse medicines, use the cart, place orders, and view recommendations.</p>
-        <a class="btn" href="https://orange-mirrors-wait.loca.lt" target="_blank" rel="noopener noreferrer">Open User Portal</a>
+        <div class="role"><span class="dot"></span>User / Customer (Port 5000)</div>
+        <p class="desc">Browse medicines, AI symptom triage & recommendations, cart checkout, and consultations.</p>
+        <a id="link-user" class="btn" href="http://localhost:5000" target="_blank" rel="noopener noreferrer">Open User Portal</a>
       </article>
 
       <article class="card">
-        <div class="role"><span class="dot"></span>Shopkeeper</div>
-        <p class="desc">Manage inventory, medicines, and shopkeeper workflows.</p>
-        <a class="btn secondary" href="https://pretty-dogs-float.loca.lt" target="_blank" rel="noopener noreferrer">Open Shopkeeper Portal</a>
+        <div class="role"><span class="dot"></span>Shopkeeper Portal (Port 5001)</div>
+        <p class="desc">Manage inventory, batch expiry, prescription fulfillment, and order dispatch.</p>
+        <a id="link-shopkeeper" class="btn secondary" href="http://localhost:5001" target="_blank" rel="noopener noreferrer">Open Shopkeeper Portal</a>
       </article>
 
       <article class="card">
-        <div class="role"><span class="dot"></span>Admin</div>
-        <p class="desc">Approve shopkeepers, manage medicines, and supervise the platform.</p>
-        <a class="btn" href="https://thin-seals-marry.loca.lt" target="_blank" rel="noopener noreferrer">Open Admin Panel</a>
+        <div class="role"><span class="dot"></span>Admin Panel (Port 5002)</div>
+        <p class="desc">Superadmin console, vendor licensing, UTR payment verification, and audit logs.</p>
+        <a id="link-admin" class="btn" href="http://localhost:5002" target="_blank" rel="noopener noreferrer">Open Admin Panel</a>
       </article>
 
       <article class="card">
-        <div class="role"><span class="dot"></span>Doctor / Telehealth</div>
-        <p class="desc">Conduct patient video consultations, issue e-prescriptions, and AI diagnosis.</p>
-        <a class="btn" href="http://127.0.0.1:5004" target="_blank" rel="noopener noreferrer" style="background: linear-gradient(135deg, #0f766e, #0369a1);">Open Doctor Portal</a>
+        <div class="role"><span class="dot"></span>Doctor / Telehealth (Port 5004)</div>
+        <p class="desc">Conduct patient video consultations, issue HMAC signed digital Rx, and view clinical history.</p>
+        <a id="link-doctor" class="btn" href="http://localhost:5004" target="_blank" rel="noopener noreferrer" style="background: linear-gradient(135deg, #0f766e, #0369a1);">Open Doctor Portal</a>
       </article>
 
       <article class="card">
-        <div class="role"><span class="dot"></span>Delivery</div>
-        <p class="desc">Track deliveries, update status, and handle order movement.</p>
-        <a class="btn secondary" href="https://sad-eagles-build.loca.lt" target="_blank" rel="noopener noreferrer">Open Delivery Portal</a>
+        <div class="role"><span class="dot"></span>Delivery Portal (Port 5003)</div>
+        <p class="desc">Track delivery runs, update transit milestones, and submit OTP delivery proof.</p>
+        <a id="link-delivery" class="btn secondary" href="http://localhost:5003" target="_blank" rel="noopener noreferrer">Open Delivery Portal</a>
       </article>
     </section>
+
+    <script>
+      (function() {
+        const host = window.location.hostname || 'localhost';
+        const proto = window.location.protocol.startsWith('http') ? window.location.protocol : 'http:';
+        if (host && host !== 'localhost' && host !== '127.0.0.1') {
+          document.getElementById('link-user').href = `${proto}//${host}:5000`;
+          document.getElementById('link-shopkeeper').href = `${proto}//${host}:5001`;
+          document.getElementById('link-admin').href = `${proto}//${host}:5002`;
+          document.getElementById('link-doctor').href = `${proto}//${host}:5004`;
+          document.getElementById('link-delivery').href = `${proto}//${host}:5003`;
+        }
+      })();
+    </script>
 
     <div class="footer">
       <div class="note">

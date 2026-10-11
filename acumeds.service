@@ -1,0 +1,19 @@
+[Unit]
+Description=AcuMeds Production Multi-Portal System
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/acumeds
+Environment="PATH=/var/www/acumeds/.venv/bin:/usr/local/bin:/usr/bin"
+EnvironmentFile=/var/www/acumeds/.env.production
+ExecStart=/var/www/acumeds/.venv/bin/python prod_server.py
+Restart=always
+RestartSec=5
+StandardOutput=append:/var/log/acumeds/access.log
+StandardError=append:/var/log/acumeds/error.log
+
+[Install]
+WantedBy=multi-user.target

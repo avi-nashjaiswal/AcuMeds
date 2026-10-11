@@ -18,10 +18,15 @@ from app import create_app
 app = create_app()
 
 if __name__ == '__main__':
+    port = int(os.getenv('PORT', 5004))
+    host = os.getenv('HOST', '0.0.0.0')
+    debug = os.getenv('FLASK_DEBUG', 'False').lower() in ('true', '1', 't')
+    
     print("\n" + "="*60)
     print("[+] ACUMEDS DOCTOR PORTAL STARTING...")
     print("="*60)
-    print("URL: http://localhost:5004")
+    print(f"URL: http://{host}:{port}")
     print("Login: doctor1 / doctor123")
     print("="*60 + "\n")
-    app.run(debug=True, host='0.0.0.0', port=5004)
+    app.run(debug=debug, host=host, port=port)
+

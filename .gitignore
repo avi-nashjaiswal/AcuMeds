@@ -38,6 +38,8 @@ venv.bak/
 .env
 .env.local
 .env.*.local
+.env.production
+.env.*.production
 *.secret
 *.pem
 *.key

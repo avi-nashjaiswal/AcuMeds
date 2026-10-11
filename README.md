@@ -108,6 +108,119 @@ This system is accompanied by a full IEEE research manuscript:
 
 ---
 
+## 🌐 Production Deployment Guide
+
+AcuMeds is engineered with a production-grade multi-service WSGI architecture. All five portals communicate over a shared transactional database with persistent upload storage.
+
+### 🏆 Recommended Deployment Architectures
+
+| Deployment Target | Suitable For | WSGI Runner | Database Strategy | Recommended Spec |
+| :--- | :--- | :--- | :--- | :--- |
+| **Linux VPS (Docker Compose)** *(Recommended)* | Full production, scalable, multi-domain | Nginx + Gunicorn / Waitress | SQLite on persistent volume OR Managed PostgreSQL | 2 vCPU, 2-4 GB RAM, Ubuntu 22.04+ (DigitalOcean, AWS Lightsail, Hetzner) |
+| **Render.com** | 1-Click Cloud PaaS with SSL | Waitress / Gunicorn via Docker | 10 GB Persistent Disk (Blueprint included) | Starter plan or above |
+| **Railway / Fly.io** | Fast containerized deployments | Dockerfile runner | Attached Volume | Standard container |
+| **Bare Metal / Virtual Machine** | On-premise clinics / hospitals | Systemd + Nginx + Waitress | Local SQLite / PostgreSQL | Linux / Windows Server |
+
+---
+
+### Method 1: Production Deployment with Docker Compose (Recommended)
+
+Docker Compose bundles all 5 WSGI services, database persistence, media volume storage, and an Nginx reverse proxy with health checks.
+
+```bash
+# 1. Clone repository on your production server
+git clone https://github.com/avi-nashjaiswal/AcuMeds.git
+cd AcuMeds
+
+# 2. Configure production secrets
+cp .env.production.example .env.production
+# Edit .env.production and set your SECRET_KEY and payment/SMS credentials
+
+# 3. Build and launch all containers in detached mode
+docker compose up -d --build
+
+# 4. Verify running services and health status
+docker compose ps
+docker compose logs -f
+```
+
+Once running:
+- **Unified Gateway & Live Hub**: `http://your-server-ip/` or `http://your-server-ip/hub`
+- **Customer Storefront**: `http://your-server-ip:5000`
+- **Shopkeeper Portal**: `http://your-server-ip:5001`
+- **Admin Panel**: `http://your-server-ip:5002`
+- **Delivery Portal**: `http://your-server-ip:5003`
+- **Doctor Telehealth**: `http://your-server-ip:5004`
+
+---
+
+### Method 2: Standalone Production Server (`prod_server.py`)
+
+Run all five portals concurrently using the built-in multi-threaded Waitress WSGI orchestrator:
+
+```bash
+# 1. Install production dependencies
+pip install -r requirements.txt
+
+# 2. Run automated schema migration check
+python migrate_db.py
+python init_doctor_db.py
+
+# 3. Launch the production WSGI server
+# On Linux / macOS:
+python prod_server.py
+
+# On Windows:
+start_production.bat
+```
+
+---
+
+### Method 3: 1-Click Deployment to Render (`render.yaml`)
+
+1. Fork or push this repository to your GitHub account.
+2. In [Render Dashboard](https://dashboard.render.com/), click **New** &rarr; **Blueprint**.
+3. Select your repository `AcuMeds`. Render will detect `render.yaml` automatically.
+4. Attach the included 10 GB persistent disk for `/app/admin_system/database`.
+5. Click **Apply** to deploy.
+
+---
+
+### Method 4: Production Linux VPS Service (`systemd`)
+
+To run AcuMeds as an automatic system service on Ubuntu/Debian:
+
+```bash
+# 1. Copy service unit to systemd
+sudo cp acumeds.service /etc/systemd/system/
+
+# 2. Reload daemon, enable auto-start on boot, and start service
+sudo systemctl daemon-reload
+sudo systemctl enable acumeds
+sudo systemctl start acumeds
+
+# 3. Check service status
+sudo systemctl status acumeds
+```
+
+---
+
+### 🔐 Production Environment Variables Checklist
+
+| Variable | Description | Recommended Production Value |
+| :--- | :--- | :--- |
+| `FLASK_ENV` | Runtime environment | `production` |
+| `FLASK_DEBUG` | Werkzeug debugger (must be disabled) | `False` |
+| `SECRET_KEY` | Cryptographic session signing key | 64-char random hex (`python -c "import secrets; print(secrets.token_hex(32))"`) |
+| `DATABASE_URL` | Relational database connection string | `sqlite:////app/admin_system/database/pharmacy.db` or PostgreSQL URI |
+| `HOST` | WSGI listening interface | `0.0.0.0` |
+| `MANUAL_UPI_ID` | UPI ID for UTR settlement | `yourname@okhdfcbank` |
+| `SMS_PROVIDER` | Delivery & Rx OTP dispatch | `twilio` (live) or `console` (log simulation) |
+| `OPENAI_API_KEY` | Key for Shopkeeper clinical AI assistant | `sk-proj-...` (optional) |
+
+---
+
 ## 🛡️ License
 
 This project is licensed under the [MIT License](LICENSE).
+

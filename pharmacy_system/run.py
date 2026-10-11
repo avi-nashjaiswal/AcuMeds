@@ -22,5 +22,10 @@ if __name__ == '__main__':
         from database.db_init import init_db
         init_db()
     
+    port = int(os.getenv('PORT', 5000))
+    host = os.getenv('HOST', '0.0.0.0')
+    debug = os.getenv('FLASK_DEBUG', 'False').lower() in ('true', '1', 't')
+    
     # Run the application
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=debug, host=host, port=port)
+

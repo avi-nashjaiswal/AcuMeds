@@ -60,15 +60,28 @@ def create_app():
         except Exception:
             pass
 
-    if not app.config.get('SQLALCHEMY_DATABASE_URI'):
+    database_url = os.getenv('DATABASE_URL') or os.getenv('SQLALCHEMY_DATABASE_URI')
+    if database_url:
+        if database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    elif not app.config.get('SQLALCHEMY_DATABASE_URI'):
         _db_path = os.path.abspath(os.path.join(basedir, os.pardir, os.pardir, 'admin_system', 'database', 'pharmacy.db'))
+        os.makedirs(os.path.dirname(_db_path), exist_ok=True)
         app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{_db_path}'
-        app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-        app.config['SECRET_KEY'] = 'doctor-portal-secret-key-doc999'
-
+    
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY') or os.getenv('FLASK_SECRET_KEY') or 'acumeds-doctor-prod-secret-key-2026'
     app.config['SESSION_COOKIE_NAME'] = 'acumeds_doctor_session'
     app.config['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY', '').strip()
     app.config['OPENAI_MODEL'] = os.getenv('OPENAI_MODEL', 'gpt-4o-mini').strip() or 'gpt-4o-mini'
+
+    # Enable ProxyFix for reverse-proxy production deployments
+    try:
+        from werkzeug.middleware.proxy_fix import ProxyFix
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+    except Exception:
+        pass
 
     # Initialize extensions
     db.init_app(app)

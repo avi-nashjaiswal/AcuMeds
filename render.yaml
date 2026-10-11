@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: acumeds-healthcare
+    env: docker
+    dockerfilePath: Dockerfile
+    plan: starter
+    region: oregon
+    disk:
+      name: acumeds-data
+      mountPath: /app/admin_system/database
+      sizeGB: 10
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: MANUAL_UPI_ID
+        value: avinashbarai722@okhdfcbank
+      - key: MANUAL_UPI_NAME
+        value: AcuMeds Healthcare
+      - key: SMS_PROVIDER
+        value: console
+      - key: SMS_COUNTRY_CODE
+        value: "+91"
