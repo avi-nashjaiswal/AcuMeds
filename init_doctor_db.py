@@ -3,6 +3,13 @@ Initialize and verify Doctor system tables and demo accounts in shared database
 """
 import os
 import sys
+import ast
+
+# Polyfill ast attributes removed in Python 3.14 for legacy library compatibility
+for _ast_attr in ('Str', 'Num', 'Bytes', 'NameConstant', 'Ellipsis'):
+    if not hasattr(ast, _ast_attr):
+        setattr(ast, _ast_attr, getattr(ast, 'Constant', object))
+
 import sqlite3
 
 basedir = os.path.abspath(os.path.dirname(__file__))

@@ -1,6 +1,11 @@
 """
 Flask application initialization
 """
+import ast
+for _ast_attr in ('Str', 'Num', 'Bytes', 'NameConstant', 'Ellipsis'):
+    if not hasattr(ast, _ast_attr):
+        setattr(ast, _ast_attr, getattr(ast, 'Constant', object))
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager

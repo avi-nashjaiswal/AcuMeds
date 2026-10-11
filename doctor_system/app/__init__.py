@@ -1,6 +1,11 @@
 """
 Flask application initialization for Doctor system
 """
+import ast
+for _ast_attr in ('Str', 'Num', 'Bytes', 'NameConstant', 'Ellipsis'):
+    if not hasattr(ast, _ast_attr):
+        setattr(ast, _ast_attr, getattr(ast, 'Constant', object))
+
 import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy

@@ -1,15 +1,14 @@
 services:
   - type: web
-    name: acumeds-healthcare
-    env: docker
-    dockerfilePath: Dockerfile
-    plan: starter
+    name: acumeds
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python prod_server.py
+    plan: free
     region: oregon
-    disk:
-      name: acumeds-data
-      mountPath: /app/admin_system/database
-      sizeGB: 10
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
       - key: FLASK_ENV
         value: production
       - key: FLASK_DEBUG
@@ -24,3 +23,4 @@ services:
         value: console
       - key: SMS_COUNTRY_CODE
         value: "+91"
+
