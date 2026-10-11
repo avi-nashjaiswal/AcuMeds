@@ -42,8 +42,8 @@ AcuMeds orchestrates five interconnected portals running concurrently over a uni
 
 ### 2. Clone the Repository
 ```bash
-git clone https://github.com/avi-nashjaiswal/AI-MEDICAL.git
-cd AI-MEDICAL
+git clone https://github.com/avi-nashjaiswal/AcuMeds.git
+cd AcuMeds
 ```
 
 ### 3. Set Up Virtual Environment & Dependencies
