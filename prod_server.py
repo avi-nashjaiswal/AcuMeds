@@ -102,7 +102,7 @@ def main():
 
     # 2. Define service registry
     services = [
-        {"name": "Customer / Pharmacy", "dir": "pharmacy_system",   "port": int(os.getenv("PORT_PHARMACY", 5000))},
+        {"name": "Customer / Pharmacy", "dir": "pharmacy_system",   "port": int(os.getenv("PORT", os.getenv("PORT_PHARMACY", 5000)))},
         {"name": "Shopkeeper Portal",   "dir": "shopkeeper_system", "port": int(os.getenv("PORT_SHOPKEEPER", 5001))},
         {"name": "Admin Panel",         "dir": "admin_system",      "port": int(os.getenv("PORT_ADMIN", 5002))},
         {"name": "Delivery Portal",     "dir": "delivery_system",   "port": int(os.getenv("PORT_DELIVERY", 5003))},

@@ -160,6 +160,16 @@ def create_app():
     app.register_blueprint(doctor_consultation_bp)
     app.register_blueprint(main_bp_final_unique)  # Registering the final unique main_bp_final_unique blueprint
 
+    @app.route('/hub')
+    def acumeds_live_hub():
+        """Serve AcuMeds Live Project Hub dashboard."""
+        from flask import send_file
+        hub_path = os.path.join(project_root, 'AcuMeds_Live_Hub.html')
+        if os.path.exists(hub_path):
+            return send_file(hub_path)
+        return "Live Hub not found", 404
+
+
     @app.context_processor
     def inject_cart_count():
         """Provide cart count for the navbar badge."""

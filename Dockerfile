@@ -52,12 +52,13 @@ RUN mkdir -p \
 # Make scripts executable
 RUN chmod +x /app/prod_server.py
 
-# Expose all 5 portal ports
-EXPOSE 5000 5001 5002 5003 5004
+# Expose all 5 portal ports and Render cloud port
+EXPOSE 5000 5001 5002 5003 5004 10000
 
-# Health check to ensure the primary pharmacy service is responding
+# Health check to ensure the primary service is responding
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-    CMD curl -f http://localhost:5000/ || exit 1
+    CMD sh -c "curl -f http://localhost:\${PORT:-5000}/ || exit 1"
 
 # Default command: launch the production WSGI multi-portal runner
 CMD ["python", "prod_server.py"]
+
