@@ -116,6 +116,21 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(doctor_bp)
 
+    @app.route('/health')
+    def health_check():
+        """Health check endpoint for Render monitoring."""
+        from flask import jsonify
+        import time
+        return jsonify({"status": "ok", "service": "doctor_telehealth", "timestamp": int(time.time())}), 200
+
+    @app.after_request
+    def add_cors_headers(response):
+        """Enable CORS for cross-domain communication between separate portals."""
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-Requested-With'
+        response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS'
+        return response
+
     # Context processors
     @app.context_processor
     def inject_globals():

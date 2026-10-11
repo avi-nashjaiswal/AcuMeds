@@ -14,5 +14,13 @@ if __name__ == '__main__':
     host = os.getenv('HOST', '0.0.0.0')
     debug = os.getenv('FLASK_DEBUG', 'False').lower() in ('true', '1', 't')
     
-    # Run on port 5001 (pharmacy app runs on 5000)
-    app.run(debug=debug, host=host, port=port)
+    print(f"[+] Shopkeeper Portal starting on http://{host}:{port}")
+    if not debug:
+        try:
+            from waitress import serve
+            serve(app, host=host, port=port, threads=int(os.getenv('WSGI_THREADS', '6')), _quiet=True)
+        except ImportError:
+            app.run(debug=debug, host=host, port=port)
+    else:
+        app.run(debug=debug, host=host, port=port)
+

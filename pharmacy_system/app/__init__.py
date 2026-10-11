@@ -10,6 +10,7 @@ from flask import Flask, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 import os
+import time
 from config import MANUAL_UPI_ID as DEFAULT_MANUAL_UPI_ID, MANUAL_UPI_NAME as DEFAULT_MANUAL_UPI_NAME
 from app.localization import (
     DEFAULT_LANGUAGE,
@@ -164,6 +165,20 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(doctor_consultation_bp)
     app.register_blueprint(main_bp_final_unique)  # Registering the final unique main_bp_final_unique blueprint
+
+    @app.route('/health')
+    def health_check():
+        """Health check endpoint for Render monitoring."""
+        from flask import jsonify
+        return jsonify({"status": "ok", "service": "pharmacy_customer", "timestamp": int(time.time())}), 200
+
+    @app.after_request
+    def add_cors_headers(response):
+        """Enable CORS for cross-domain communication between separate portals."""
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-Requested-With'
+        response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS'
+        return response
 
     @app.route('/hub')
     def acumeds_live_hub():

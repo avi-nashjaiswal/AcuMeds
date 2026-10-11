@@ -28,5 +28,13 @@ if __name__ == '__main__':
     print(f"URL: http://{host}:{port}")
     print("Login: doctor1 / doctor123")
     print("="*60 + "\n")
-    app.run(debug=debug, host=host, port=port)
+    if not debug:
+        try:
+            from waitress import serve
+            serve(app, host=host, port=port, threads=int(os.getenv('WSGI_THREADS', '6')), _quiet=True)
+        except ImportError:
+            app.run(debug=debug, host=host, port=port)
+    else:
+        app.run(debug=debug, host=host, port=port)
+
 

@@ -1,11 +1,22 @@
-services:
-  - type: web
-    name: acumeds
-    runtime: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: python prod_server.py
+databases:
+  - name: acumeds-db
+    databaseName: pharmacy
+    user: pharmacy_user
     plan: free
     region: oregon
+
+services:
+  # ==============================================================================
+  # 1. User / Customer Portal (Storefront, AI Recommendations, Cart, Refills)
+  # ==============================================================================
+  - type: web
+    name: acumed-customer
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python pharmacy_system/run.py
+    plan: free
+    region: oregon
+    healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
@@ -13,6 +24,10 @@ services:
         value: production
       - key: FLASK_DEBUG
         value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: acumeds-db
+          property: connectionString
       - key: SECRET_KEY
         generateValue: true
       - key: MANUAL_UPI_ID
@@ -24,3 +39,131 @@ services:
       - key: SMS_COUNTRY_CODE
         value: "+91"
 
+  # ==============================================================================
+  # 2. Shopkeeper Portal (Medicine Inventory, Expiry Tracking, Order Dispatch)
+  # ==============================================================================
+  - type: web
+    name: acumed-shopkeeper
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python shopkeeper_system/run.py
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: acumeds-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+
+  # ==============================================================================
+  # 3. Super Admin Panel (User Controls, UTR Approvals, Vendor Verification)
+  # ==============================================================================
+  - type: web
+    name: acumed-admin
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python admin_system/run.py
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: acumeds-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+
+  # ==============================================================================
+  # 4. Doctor Telehealth Portal (Consultations, Patient History, Digital Rx)
+  # ==============================================================================
+  - type: web
+    name: acumed-doctor
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python doctor_system/run.py
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: acumeds-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+
+  # ==============================================================================
+  # 5. Delivery Portal (Transit Tracking, OTP Verification, Milestone Logs)
+  # ==============================================================================
+  - type: web
+    name: acumed-delivery
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python delivery_system/run.py
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: acumeds-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+
+  # ==============================================================================
+  # 6. Live Project Hub (Central Dashboard Linking All 5 Deployed Portals)
+  # ==============================================================================
+  - type: web
+    name: acumed-hub
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python hub_server.py
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: "False"
+      - key: URL_CUSTOMER
+        value: https://acumed-customer.onrender.com
+      - key: URL_SHOPKEEPER
+        value: https://acumed-shopkeeper.onrender.com
+      - key: URL_ADMIN
+        value: https://acumed-admin.onrender.com
+      - key: URL_DOCTOR
+        value: https://acumed-doctor.onrender.com
+      - key: URL_DELIVERY
+        value: https://acumed-delivery.onrender.com

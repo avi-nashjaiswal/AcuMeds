@@ -152,6 +152,21 @@ def create_app():
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(api_bp)
 
+    @app.route('/health')
+    def health_check():
+        """Health check endpoint for Render monitoring."""
+        from flask import jsonify
+        import time
+        return jsonify({"status": "ok", "service": "shopkeeper_system", "timestamp": int(time.time())}), 200
+
+    @app.after_request
+    def add_cors_headers(response):
+        """Enable CORS for cross-domain communication between separate portals."""
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-Requested-With'
+        response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS'
+        return response
+
     @app.context_processor
     def inject_notification_count():
         """Provide unread notification count for navbar badges."""

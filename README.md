@@ -176,23 +176,47 @@ start_production.bat
 
 ---
 
-### Method 3: 1-Click Deployment to Render (`render.yaml`)
+### Method 3: Deploying All 6 Portals as Independent Render Services
 
-1. Fork or push this repository to your GitHub account (`https://github.com/avi-nashjaiswal/AcuMeds`).
-2. In [Render Dashboard](https://dashboard.render.com/), create a new **Web Service** with:
-   - **Environment**: `Python 3`
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `python prod_server.py`
-3. All 5 portals are automatically served under your single Render URL via the **Unified Cloud Gateway**:
+You can deploy all six portals as completely separate, independent web services on Render, each with its own unique domain:
 
-| Portal / Feature | Live URL Path | Description & Credentials |
-| :--- | :--- | :--- |
-| **User / Customer** | `https://acumeds.onrender.com/` | Public storefront, AI recommendation, online cart |
-| **Live Project Hub** | `https://acumeds.onrender.com/hub` | Interactive 1-click dashboard linking to all portals |
-| **Shopkeeper Portal**| `https://acumeds.onrender.com/shopkeeper/` | Inventory, batch expiry, orders (`shopkeeper1` / `shopkeeper123`) |
-| **Admin Panel** | `https://acumeds.onrender.com/admin/` | Superadmin console, UTR verify (`admin` / `admin123`) |
-| **Doctor Telehealth**| `https://acumeds.onrender.com/doctor/` | Video consults & digital Rx (`doctor1` / `doctor123`) |
-| **Delivery Portal** | `https://acumeds.onrender.com/delivery/` | Transit tracking & OTP proof (`delivery1` / `delivery123`) |
+#### 🌟 6 Separate Render Services Specification:
+
+| Service Name | Purpose | Start Command | Health Check | Example Render URL |
+| :--- | :--- | :--- | :--- | :--- |
+| **1. Customer Portal** | Public pharmacy & AI triage | `python pharmacy_system/run.py` | `/health` | `https://acumed-customer.onrender.com` |
+| **2. Shopkeeper Portal** | Inventory & order dispatch | `python shopkeeper_system/run.py` | `/health` | `https://acumed-shopkeeper.onrender.com` |
+| **3. Admin Panel** | Superadmin & user audits | `python admin_system/run.py` | `/health` | `https://acumed-admin.onrender.com` |
+| **4. Doctor Telehealth** | Consultations & digital Rx | `python doctor_system/run.py` | `/health` | `https://acumed-doctor.onrender.com` |
+| **5. Delivery Portal** | Driver transit & OTP verify | `python delivery_system/run.py` | `/health` | `https://acumed-delivery.onrender.com` |
+| **6. Live Project Hub** | Central 1-click dashboard | `python hub_server.py` | `/health` | `https://acumed-hub.onrender.com` |
+
+#### 🚀 Option A: 1-Click Multi-Service Blueprint (`render.yaml`)
+1. In your [Render Dashboard](https://dashboard.render.com/), click **New +** &rarr; **Blueprint**.
+2. Select repository `avi-nashjaiswal/AcuMeds`.
+3. Render automatically provisions:
+   - Shared PostgreSQL database (`acumeds-db`)
+   - All 6 separate web services
+   - Secure auto-generated secret keys and inter-service environment variables.
+4. Click **Apply** to launch all 6 services simultaneously.
+
+#### 🛠️ Option B: Manual Service Creation on Render Dashboard
+For each of the 6 services in Render Dashboard:
+1. Click **New +** &rarr; **Web Service** &rarr; select `avi-nashjaiswal/AcuMeds`.
+2. **Environment**: `Python 3`
+3. **Build Command**: `pip install -r requirements.txt`
+4. **Start Command**: Set to the corresponding start command from the table above (e.g. `python pharmacy_system/run.py`).
+5. **Environment Variables**:
+   - `PYTHON_VERSION`: `3.11.9`
+   - `FLASK_ENV`: `production`
+   - `DATABASE_URL`: Your Render PostgreSQL Internal Connection String (shares clinical data across all 5 portals).
+   - `SECRET_KEY`: A secure random string.
+6. For **Live Project Hub** (`hub_server.py`), optionally set:
+   - `URL_CUSTOMER`: `https://acumed-customer.onrender.com`
+   - `URL_SHOPKEEPER`: `https://acumed-shopkeeper.onrender.com`
+   - `URL_ADMIN`: `https://acumed-admin.onrender.com`
+   - `URL_DOCTOR`: `https://acumed-doctor.onrender.com`
+   - `URL_DELIVERY`: `https://acumed-delivery.onrender.com`
 
 ---
 
